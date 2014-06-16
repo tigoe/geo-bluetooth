@@ -27,10 +27,10 @@ nmeaParser = {
             variation: +fields[10],
             variationPole: fields[11]
         };
-        if (talker_id == "RMC"){
+        if (sentenceType === "RMC"){
            return rmc; 
        } else {
-            return {msg: 'This is '+ talker_id};
+            return {msg: 'This is '+ sentenceType};
        }
 
     }
