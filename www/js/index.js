@@ -38,7 +38,7 @@ var app = {
                     for (var r in results){
                         dd = document.getElementById('devices');
                         //<option value="volvo">Volvo</option>
-                        dd.appendChild('<option value="' + r[0] + '">' + r[0] + '</option>');
+                        dd.appendChild('<option value="' + r.id + '">test' + r.id + '</option>');
                     }
                 },
                 function(error) {
