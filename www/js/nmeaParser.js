@@ -5,33 +5,34 @@ nmeaParser = {
 
     parse: function(sentence){
         fields = this.sentenceToArray(sentence);
-        console.log("I'm parsing OK" + fields);
+        console.log(fields);
         if (fields[0].charAt(1) == 'P') {
-            talker_id = 'P'; // Proprietary
+            //talker_id = 'P'; // Proprietary
             sentenceType = fields[0].substr(2);
         } else {
-            talker_id = fields[0].substr(1, 2);
+            //talker_id = fields[0].substr(1, 2);
             sentenceType = fields[0].substr(3);
         }
 
-        rmc =  {
-            timestamp: fields[1],
-            status: fields[2] == 'V' ? 'warning' : 'valid',
-            lat: fields[3],
-            latPole: fields[4],
-            lon: fields[5],
-            lonPole: fields[6],
-            speedKnots: +fields[7],
-            trackTrue: +fields[8],
-            date: fields[9],
-            variation: +fields[10],
-            variationPole: fields[11]
-        };
-        /*if (sentenceType === "RMC"){
+        
+        if (sentenceType === "RMC"){
+            var rmc =  {
+                timestamp: fields[1],
+                status: fields[2] == 'V' ? 'warning' : 'valid',
+                lat: fields[3],
+                latPole: fields[4],
+                lon: fields[5],
+                lonPole: fields[6],
+                speedKnots: +fields[7],
+                trackTrue: +fields[8],
+                date: fields[9],
+                variation: +fields[10],
+                variationPole: fields[11]
+            };
            return rmc; 
-       } else {*/
+       } else {
             return {msg: 'This is '+ sentenceType};
-       //}
+       }
 
     }
 
