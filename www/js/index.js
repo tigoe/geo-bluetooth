@@ -43,16 +43,20 @@ var app = {
             bluetoothSerial.list(
                 function(results) {
                     app.display(JSON.stringify(results));
+                    for (r in results){
+                        dd = document.getElementById('devices');
+                        dd.appendChild('<li>' + r[0] = '<li>');
+                    }
                 },
                 function(error) {
                     app.display(JSON.stringify(error));
                 }
             );
-        }
+        };
 
         // if isEnabled returns failure, this function is called:
         var notEnabled = function() {
-            app.display("Bluetooth is not enabled.")
+            app.display("Bluetooth is not enabled.");
         }
 
          // check if Bluetooth is on:
@@ -60,7 +64,7 @@ var app = {
             listPorts,
             notEnabled
         );
-    }
+    },
     
     
  /*
