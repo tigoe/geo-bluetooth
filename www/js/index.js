@@ -186,7 +186,7 @@ var app = {
 		var display = document.getElementById("message");// the message div
 		display.innerHTML = "";
 		for (var field in nmeaObject) {
-			display.innerHTML = field + ":" + nmeaObject[field] + "<br>";
+			display.innerHTML += field + ":" + nmeaObject[field] + "<br>";
 		}
 	},
 
