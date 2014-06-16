@@ -50,11 +50,8 @@ var app = {
         // if isEnabled returns failure, this function is called:
         var notEnabled = function() {
             app.display("Bluetooth is not enabled.");
-<<<<<<< HEAD
         }
-=======
-        };
->>>>>>> aa2d171c39cfed87f768267a66ab6d00df0e96ea
+       
 
          // check if Bluetooth is on:
         bluetoothSerial.isEnabled(
@@ -62,10 +59,8 @@ var app = {
             notEnabled
         );
     },
-<<<<<<< HEAD
     
-=======
->>>>>>> aa2d171c39cfed87f768267a66ab6d00df0e96ea
+
     
  /*
     Connects if not connected, and disconnects if connected:
