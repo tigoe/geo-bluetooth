@@ -7,7 +7,6 @@ nmeaParser = {
         fields = this.sentenceToArray(sentence);
         
         sentenceType = fields[0].substr(3);
-        console.log(sentenceType);
         /*if (fields[0].charAt(1) == 'P') {
             //talker_id = 'P'; // Proprietary
             sentenceType = fields[0].substr(2);
@@ -16,9 +15,12 @@ nmeaParser = {
             sentenceType = fields[0].substr(3);
         }*/
 
-        
+        switch (sentenceType) {
+	        'RMC':
+	        		break;
+	        
+        }
         if (sentenceType == 'RMC'){
-            console.log ('this is RMC');
             var rmc =  {
                 timestamp: fields[1],
                 status: fields[2] == 'V' ? 'warning' : 'valid',

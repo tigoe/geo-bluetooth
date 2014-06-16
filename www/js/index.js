@@ -139,9 +139,9 @@ var app = {
 		// and display any new data that's come in since
 		// the last newline:
 		bluetoothSerial.subscribe('\n', function (data) {
-			app.clear();
 			var nmeaObj = nmeaParser.parse(data);
-			if (nmeaObj) {
+			if (typeof(nmeaObj) === 'object' ) {
+				app.clear();
 				app.displayNmea(nmeaObj);
 			}
 		});
