@@ -35,7 +35,7 @@ var app = {
             bluetoothSerial.list(
                 function(results) {
                     app.display(JSON.stringify(results));
-                    for (r in results){
+                    for (var r in results){
                         dd = document.getElementById('devices');
                         //<option value="volvo">Volvo</option>
                         dd.appendChild('<option value="' + r[0] + '">' + r[0] + '</option>');
@@ -50,7 +50,7 @@ var app = {
         // if isEnabled returns failure, this function is called:
         var notEnabled = function() {
             app.display("Bluetooth is not enabled.");
-        }
+        };
        
 
          // check if Bluetooth is on:
