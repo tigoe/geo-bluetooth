@@ -17,7 +17,7 @@ nmeaParser = {
         }*/
 
         
-        if (sentenceType === "RMC"){
+        if (sentenceType == "RMC"){
             var rmc =  {
                 timestamp: fields[1],
                 status: fields[2] == 'V' ? 'warning' : 'valid',
