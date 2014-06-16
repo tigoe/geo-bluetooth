@@ -1,7 +1,6 @@
 
 var app = {
-
-       macAddress: "AA:BB:CC:DD:EE:FF",  // get your mac address from bluetoothSerial.list
+    macAddress: "AA:BB:CC:DD:EE:FF",  // get your mac address from bluetoothSerial.list
     chars: "",
 
     // Application Constructor
@@ -34,13 +33,29 @@ var app = {
             // list the available BT ports:
             bluetoothSerial.list(
                 function(results) {
-                    app.display(JSON.stringify(results));
-                    for (var r in results){
-                        dd = document.getElementById('devices');
-                        //<option value="volvo">Volvo</option>
-                        dd.innerHTML += '<option value="' + r.address + '">test' + r.name + '</option>';
+                		var devices = document.getElementById('devices');
+    
+   					// result is an array of JSON objects. 
+   					// iterate over it and pull out relevant elements.
+   					// on iOS, address is called uuid. On Android it's called address:                  
+                    for (i=0; i<results.length; i++) {
+                    		if (results[i].uuid) {
+	                    		address = results[i].uuid;
+                    		}
+                    if (results[i].address) {
+	                    		address = results[i].address;
+                    		}
+                    devices.innerHTML += '<option value="' +
+                        address + '">' +
+                        results[i].name +
+                        ' </option>';  
                     }
-                },
+                    if (results.length === 0) {
+	                    app.display("No BT Serial devices found");
+                    }
+                    // use the first item from the list as your address:
+                    app.macAddress = devices.options[devices.selectedIndex].value;
+                    app.display(devices.options[devices.selectedIndex].value);                 },
                 function(error) {
                     app.display(JSON.stringify(error));
                 }
