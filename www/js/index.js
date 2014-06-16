@@ -141,7 +141,9 @@ var app = {
 		bluetoothSerial.subscribe('\n', function (data) {
 			app.clear();
 			var nmeaObj = nmeaParser.parse(data);
-			app.displayNmea(nmeaObj);
+			if (nmeaObj) {
+				app.displayNmea(nmeaObj);
+			}
 		});
 	},
 
