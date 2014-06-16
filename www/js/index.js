@@ -140,8 +140,9 @@ var app = {
 		// the last newline:
 		bluetoothSerial.subscribe('\n', function (data) {
 			app.clear();
-			nmeaParser.parse(data);
-			app.display(data);
+			var nmeaObj = nmeaParser.parse(data);
+			app.display(JSON.stringify(nmeaObj));
+			console.log(JSON.stringify(nmeaObj));
 		});
 	},
 
@@ -183,10 +184,10 @@ var app = {
 	
 	displayNmea: function(nmeaObject) {
 		// will make this into a function that displays a JSON object:
-		var display = document.getElementById("message"),// the message div
+		var display = document.getElementById("message");// the message div
 		display.innerHTML = "";
 		for (var field in nmeaObject) {
-			display.innerHTML = field + ":" nmeaObject[field] + "<br>";
+			display.innerHTML = field + ":" + nmeaObject[field] + "<br>";
 		}
 	},
 

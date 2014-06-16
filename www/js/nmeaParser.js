@@ -4,7 +4,8 @@ nmeaParser = {
     },
 
     parse: function(sentence){
-        fields = sentenceToArray(sentence);
+        fields = this.sentenceToArray(sentence);
+        console.log("I'm parsing OK" + fields);
         if (fields[0].charAt(1) == 'P') {
             talker_id = 'P'; // Proprietary
             sentenceType = fields[0].substr(2);
@@ -25,7 +26,7 @@ nmeaParser = {
             date: fields[9],
             variation: +fields[10],
             variationPole: fields[11]
-        }
+        };
         return rmc;
 
     }
