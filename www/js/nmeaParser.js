@@ -5,8 +5,9 @@ nmeaParser = {
 
     parse: function(sentence){
         fields = this.sentenceToArray(sentence);
-        console.log(fields);
+        
         sentenceType = fields[0].substr(3);
+        console.log(sentenceType);
         /*if (fields[0].charAt(1) == 'P') {
             //talker_id = 'P'; // Proprietary
             sentenceType = fields[0].substr(2);
