@@ -37,7 +37,8 @@ var app = {
                     app.display(JSON.stringify(results));
                     for (r in results){
                         dd = document.getElementById('devices');
-                        dd.appendChild('<li>' + r[0] = '<li>');
+                        //<option value="volvo">Volvo</option>
+                        dd.appendChild('<option value="' + r[0] + '">' + r[0] + '</option>');
                     }
                 },
                 function(error) {
