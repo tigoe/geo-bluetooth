@@ -27,16 +27,6 @@ var app = {
     
     // Update DOM on a Received Event
     receivedEvent: function(id) {
- /*
-       var parentElement = document.getElementById(id);
-        var listeningElement = parentElement.querySelector('.listening');
-        var receivedElement = parentElement.querySelector('.received');
-
-        listeningElement.setAttribute('style', 'display:none;');
-        receivedElement.setAttribute('style', 'display:block;');
-
-        console.log('Received Event: ' + id);
-*/
         // check to see if Bluetooth is turned on.
         // this function is called only
         //if isEnabled(), below, returns success:
@@ -45,6 +35,11 @@ var app = {
             bluetoothSerial.list(
                 function(results) {
                     app.display(JSON.stringify(results));
+                    for (var r in results){
+                        dd = document.getElementById('devices');
+                        //<option value="volvo">Volvo</option>
+                        dd.appendChild('<option value="' + r[0] + '">' + r[0] + '</option>');
+                    }
                 },
                 function(error) {
                     app.display(JSON.stringify(error));
@@ -56,6 +51,7 @@ var app = {
         var notEnabled = function() {
             app.display("Bluetooth is not enabled.");
         };
+       
 
          // check if Bluetooth is on:
         bluetoothSerial.isEnabled(
@@ -63,6 +59,8 @@ var app = {
             notEnabled
         );
     },
+    
+
     
  /*
     Connects if not connected, and disconnects if connected:
