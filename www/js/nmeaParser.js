@@ -27,11 +27,11 @@ nmeaParser = {
             variation: +fields[10],
             variationPole: fields[11]
         };
-        if (sentenceType === "RMC"){
+        /*if (sentenceType === "RMC"){
            return rmc; 
-       } else {
+       } else {*/
             return {msg: 'This is '+ sentenceType};
-       }
+       //}
 
     }
 
