@@ -181,15 +181,13 @@ var app = {
 	},
 	
 	
-	displayNmea: function(message) {
+	displayNmea: function(nmeaObject) {
 		// will make this into a function that displays a JSON object:
-		
 		var display = document.getElementById("message"),// the message div
-			lineBreak = document.createElement("br"),     // a line break
-			label = document.createTextNode(message);     // create the label
-		
-		display.appendChild(lineBreak);						// add a line break
-		display.appendChild(label);							// add the message node
+		display.innerHTML = "";
+		for (var field in nmeaObject) {
+			display.innerHTML = field + ":" nmeaObject[field] + "<br>";
+		}
 	},
 
 /*
