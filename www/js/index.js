@@ -142,7 +142,6 @@ var app = {
 			app.clear();
 			var nmeaObj = nmeaParser.parse(data);
 			app.displayNmea(nmeaObj);
-			//console.log(JSON.stringify(nmeaObj));
 		});
 	},
 
