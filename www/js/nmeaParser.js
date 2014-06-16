@@ -35,6 +35,7 @@ nmeaParser = {
            return rmc; 
        } else {
             //return {msg: 'This is '+ sentenceType};
+            return false;
        }
 
     }
