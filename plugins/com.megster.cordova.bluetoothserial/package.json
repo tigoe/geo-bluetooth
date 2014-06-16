@@ -1,0 +1,17 @@
+{
+    "version": "0.3.0",
+    "name": "com.megster.cordova.bluetoothserial",
+    "cordova_name": "Bluetooth Serial",
+    "description": "Bluetooth Serial Communication Plugin",
+    "license": "Apache 2.0",
+    "keywords": [
+        "bluetooth",
+        " arduino"
+    ],
+    "engines": [
+        {
+            "name": "cordova",
+            "version": ">=2.9.0"
+        }
+    ]
+}
