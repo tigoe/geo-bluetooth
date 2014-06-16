@@ -4,7 +4,6 @@ var app = {
        macAddress: "AA:BB:CC:DD:EE:FF",  // get your mac address from bluetoothSerial.list
     chars: "",
 
-/
     // Application Constructor
     initialize: function() {
         this.bindEvents();
@@ -25,16 +24,9 @@ var app = {
     onDeviceReady: function() {
         app.receivedEvent('deviceready');
     },
+    
     // Update DOM on a Received Event
     receivedEvent: function(id) {
-        var parentElement = document.getElementById(id);
-        var listeningElement = parentElement.querySelector('.listening');
-        var receivedElement = parentElement.querySelector('.received');
-
-        listeningElement.setAttribute('style', 'display:none;');
-        receivedElement.setAttribute('style', 'display:block;');
-
-        console.log('Received Event: ' + id);
         // check to see if Bluetooth is turned on.
         // this function is called only
         //if isEnabled(), below, returns success:
@@ -57,7 +49,11 @@ var app = {
         // if isEnabled returns failure, this function is called:
         var notEnabled = function() {
             app.display("Bluetooth is not enabled.");
+<<<<<<< HEAD
         }
+=======
+        };
+>>>>>>> aa2d171c39cfed87f768267a66ab6d00df0e96ea
 
          // check if Bluetooth is on:
         bluetoothSerial.isEnabled(
@@ -65,24 +61,12 @@ var app = {
             notEnabled
         );
     },
+<<<<<<< HEAD
     
+=======
+>>>>>>> aa2d171c39cfed87f768267a66ab6d00df0e96ea
     
  /*
-    Application constructor
- */
-    initialize: function() {
-        this.bindEvents();
-        console.log("Starting SimpleSerial app");
-    },
-/*
-    bind any events that are required on startup to listeners:
-*/
-    bindEvents: function() {
-        document.addEventListener('deviceready', this.onDeviceReady, false);
-        connectButton.addEventListener('touchend', app.manageConnection, false);
-    },
-
-/*
     Connects if not connected, and disconnects if connected:
 */
     manageConnection: function() {
