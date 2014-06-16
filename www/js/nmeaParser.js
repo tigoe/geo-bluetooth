@@ -6,16 +6,17 @@ nmeaParser = {
     parse: function(sentence){
         fields = this.sentenceToArray(sentence);
         console.log(fields);
-        if (fields[0].charAt(1) == 'P') {
+        sentenceType = fields[0].substr(3);
+        /*if (fields[0].charAt(1) == 'P') {
             //talker_id = 'P'; // Proprietary
             sentenceType = fields[0].substr(2);
         } else {
             //talker_id = fields[0].substr(1, 2);
             sentenceType = fields[0].substr(3);
-        }
+        }*/
 
         
-        if (sentenceType === "RMC"){
+        if (sentenceType === "GPRMC"){
             var rmc =  {
                 timestamp: fields[1],
                 status: fields[2] == 'V' ? 'warning' : 'valid',
