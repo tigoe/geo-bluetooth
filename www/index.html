@@ -8,7 +8,12 @@
         
         <style typpe="css">
         .button {
-        		font-size: 20PX;
+        		font-size: 20px;
+        		height: auto
+        }
+        
+        .select {
+        		font-size: 20px;
         		height: auto
         }
         </style>
@@ -17,10 +22,10 @@
     <body>
         <div class="app">
             <div id="ui">
-                <button id="connectButton">Connect</button>
-                <button id="scanButton">Scan</button>
+                <button id="connectButton" class="button">Connect</button>
+                <button id="scanButton" class="button">Scan</button>
             </div>
-            <select id="devices"></select>
+            <select id="devices" class="select"></select>
         <div id="message">Hello.</div>
 
         </div>
