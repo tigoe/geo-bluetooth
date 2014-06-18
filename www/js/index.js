@@ -2,7 +2,7 @@
 var app = {
 	deviceAddress: "AA:BB:CC:DD:EE:FF",  // get your mac address from bluetoothSerial.list
 	deviceName: "No Name",
-
+	
 	// Application Constructor
 	initialize: function() {
 		this.bindEvents();
@@ -139,11 +139,12 @@ var app = {
 		// and display any new data that's come in since
 		// the last newline:
 		bluetoothSerial.subscribe('\n', function (data) {
-			var nmeaObj = nmeaParser.parse(data);
-			if (typeof(nmeaObj) === 'object' ) {
+			// if you get a $GPRMC sentence, clear the screen:
+			if (data.split(',')[0] === '$GPRMC') {
 				app.clear();
-				app.displayNmea(nmeaObj);
-			}
+			}	
+			// display the sentence:
+			app.display(data);
 		});
 	},
 
