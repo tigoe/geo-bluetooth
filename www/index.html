@@ -26,12 +26,16 @@
             <div id="ui">
                 <button id="connectButton" class="button">Connect</button>
                 <button id="scanButton" class="button">Scan</button>
+
             </div>
             <select id="devices" class="select"></select>
         <div id="message">Hello.</div>
+        <button id="couchButton" class="button">Save To Couch</button>
 
         </div>
         <script type="text/javascript" src="cordova.js"></script>
+        <script type="text/javascript" src="js/lib/pouchdb-2.2.0.min.js"></script>
+         <script type="text/javascript" src="js/dBase.js"></script>
         <script type="text/javascript" src="js/index.js"></script>
          <script type="text/javascript">
             app.initialize();

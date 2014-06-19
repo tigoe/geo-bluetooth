@@ -1,3 +1,8 @@
+/*
+This script is borrowed from https://github.com/jamesp/node-nmea
+
+*/
+
 // A NMEA-0183 parser based on the format given here: http://www.tronico.fi/OH6NT/docs/NMEA0183.pdf
 
 var nmea = {
