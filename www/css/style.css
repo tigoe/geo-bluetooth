@@ -1,0 +1,15 @@
+.button {            
+    padding: 1em;
+    margin: .6em
+}
+
+.select {
+    margin: 2em 0;
+    
+}
+#message {
+	margin: 0 1em;
+	/*border: 1px solid #ccc;*/
+	padding: 1em;
+
+}

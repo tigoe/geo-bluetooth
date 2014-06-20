@@ -54,6 +54,7 @@ var app = {
 					var devices = document.getElementById('devices');
 					// clear the select list first:
 					devices.innerHTML = "";
+					
 					// result is an array of JSON objects. 
 					// iterate over it and pull out relevant elements.
 					// on iOS, address is called uuid. On Android it's called address:                  
