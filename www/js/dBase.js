@@ -12,14 +12,22 @@ var dBase = {
 		    });
 	},
 	add: function(record,callback){
-		this.db.post(record, function (err, result) {
+		// response function
+		var responseHandler = function (err, result) {
 			if (!err) {
-				//console.log('Successfully added a record!');
+				console.log('Successfully added a record!');
 				callback(result);
 			} else {
-				//console.log('could not add record');
+				console.log('could not add record');
 			}
-		});
+		};
+		// add muliple items using bulkDocs if an array is passed
+		if (record instanceof Array){
+			this.db.bulkDocs(record, responseHandler);
+		} else {
+			this.db.post(record, responseHandler);
+		}
+		
 	},
 	update: function(record,callback){
 		this.db.put(record, function (err, result) {

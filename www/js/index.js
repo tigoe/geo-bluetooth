@@ -2,21 +2,10 @@ var app = {
 	deviceAddress: "AA:BB:CC:DD:EE:FF",  // get your mac address from bluetoothSerial.list
 	deviceName: "No Name",
 	pouchDBName: "mypouchgeo", // name of the database pouchDB uses locally on device (NOT remote couchDB)
-	/*
+	nmeaPacket: [], // group of nmea sentences, used for buffering
+	
 	timeStored: new Date().getTime() / 1000, // track last save to PouchDB (milliseconds) 
 	timeInterval: 30 * 1000, // min time between each save to PouchDB (seconds to milliseconds)
-	// could also store in an array (or obj) and only record if it's not in the array 
-	//	-- replace the old sentence of a type with new sentence of that type
-	// example:
-	//	sentences.GPRMC = 'sfadsfdfs';
-	// 	sentences.GPXYZ = 'fdsfsdfsf'; // etc, etc..
-	// 	currentSentences = {}
-	// but this won't work because timestamps will always be different.
-	// could instead store time that each type was last recorded, and only record if it's been 30 secs
-	// example:
-	//	sentences.GPRMC = lastStoredTime; // etc 
-	*/
-	
 
 	// Application Constructor
 	initialize: function() {
@@ -180,22 +169,27 @@ var app = {
 		// the last newline:
 		bluetoothSerial.subscribe('\n', function (data) {
 			//console.log('GOT DATA: ' + data);
-			// *** TODO: should we limit how often it stores info? Every 30 sec? *** //
+			
+			var now = new Date().getTime();
+			if (data.split(',')[0] === '$GPRMC') { //assume RMC is the beginning of a packet
+				// if it's been n+ seconds since you last stored a packet
+				if((app.timeStored + app.timeInterval) >= now){
+					//app.storeNmeaPacket(app.nmeaPacket);
+				} 
 
+				// make a new Packet
+				app.nmeaPacket = [];
+				// clear screen
+				app.clear();
+
+			} 
 			// if you get any NMEA sentence, beginning with $ :
-			if (data.split(',')[0].substring(0,1) === '$') {
-				
+			if (data.split(',')[0].substring(0,1) === '$') {	
 				// convert it to an object
 				nmeaObj = app.parseNmeaToObj(data);
 
-				/* ===== store to Pouch ===== */
-				dBase.add(nmeaObj,function(results){
-					//console.log('saved to pouch db');
-				});
-				/* ======= end Pouch ======== */
-
-				// clear screen
-				app.clear();
+				// save it to the packet array
+				app.nmeaPacket.push(nmeaObj);
 			}
 			// display the sentence:
 			app.display(data);
@@ -230,19 +224,47 @@ var app = {
 		// example sentence string: $GPRMC,180826.9,V,4043.79444,N,07359.60944,W,,,160614,013.0,W,N*19
 		// make it an array:
 		nmeaArr = nmeaStr.split(",");
-		sentenceType = nmeaArr[0].substring(1);
-
 		// but couch needs it to be an object:
 		nmeaObj = {};
-		// store the whole sentence
+		// first store the whole sentence
 		nmeaObj.nmeaSentence = nmeaStr;
-		// store the sentence type
-		nmeaObj.sentenceType = sentenceType;
-		// store the indiv fields (with numeric key names for now)
-		for (var i=0; i < nmeaArr.length; i++){
-			nmeaObj[i] = nmeaArr[i]; 
+		// find the type
+		typeProp = nmeaArr[0].slice(-3).toLowerCase();
+		// get the corresponding object with fields for that type -- if it exists
+		if(typeProp in app.nmeaFormats){
+			formatObj = app.nmeaFormats[typeProp];
+			// use the properties from app.nmeaFormats
+			index = 0;
+			for (var prop in app.nmeaFormats.rmc){
+			    if (!(index in nmeaArr)){
+			        break;
+			    }
+				nmeaObj[prop] = nmeaArr[index];
+			    index++;
+			}
+		} else { // if the type is not defined, store the fields with numeric key names
+			//add the sentence type as a named field
+			nmeaObj.sentenceType = nmeaArr[0];
+			for (var i=0; i < nmeaArr.length; i++){
+				nmeaObj[i] = nmeaArr[i]; 
+			}
 		}
+		
 		return nmeaObj;
+	},
+/*
+	store the array of NMEA sentence objects to Pouch
+*/	
+	storeNmeaPacket:function(packetArr){
+		// add in all records in array in bulk
+		dBase.add(packetArr,function(results){
+			console.log('saved to pouch db');
+		});
+		/*for (var i in packetArr){
+			dBase.add(packetArr[i],function(results){
+				//console.log('saved to pouch db');
+			});
+		}*/
 	},
 /*
 	moves pouchDB to remote couchDB
@@ -263,6 +285,39 @@ var app = {
 		localStorage.setItem('couchDbName',dBase.remoteDbName);
 		//console.log('local storage: ' + localStorage.getItem('couchServerAddr'));
 	},
+
+/*
+	set the number of seconds before each PouchDB store
+*/
+	setBufferInterval: function(secs){
+		// secs * 1000
+
+	},
+
+	nmeaFormats:{
+		rmc: {
+			sentenceType: null,	//0
+			time: null,			//1
+			status: null,		//2
+			latitude: null,		//3
+			dirNS: null,		//4
+			longitude: null,	//5
+			dirEW: null,		//6
+			speed: null,		//7
+			track: null,		//8
+			UTdate: null,		//9
+			variation: null,	//10
+			EorW: null,			//11
+			checksum: null		//12
+		},
+		gsv: {
+			sentenceType: null, //0
+			numMessages: null,	//1
+			messageNum: null,	//2
+			checksum: null		//3
+		}
+	},
+
 
 /*
     appends @error to the message div:
