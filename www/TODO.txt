@@ -1,0 +1,9 @@
+TODO
+
+- format objects w/ property names for RMC & GSV types
+- get sentences as a packet instead of one-by-one
+- buffer incoming data every 30 sec. (w/option to change interval)
+- make UI setting for changing interval
+- show the interval value on connect
+- stop BT logging when connecting to couch
+- convert the NMEA timestamp to human-readable
