@@ -27,11 +27,6 @@ var app = {
 			this.pouchDBName = 'mypouchdb';
 		}
 		dBase.init(this.pouchDBName);
-		// if remote server info for CouchDB is stored, use it
-		if (localStorage.getItem('couchServerAddr')){
-			dBase.remoteServer = localStorage.getItem('couchServerAddr');
-			dBase.remoteDbName = localStorage.getItem('couchDbName');
-		}
 
 	},
 	// Bind Event Listeners
@@ -51,7 +46,19 @@ var app = {
 	// The scope of 'this' is the event. In order to call the 'receivedEvent'
 	// function, we must explicity call 'app.receivedEvent(...);'
 	onDeviceReady: function() {
+		// if remote server info for CouchDB is stored, use it
+		//console.log('local storage: ' + localStorage.getItem('couchServerAddr'));
+		if (localStorage.getItem('couchServerAddr')){
+			dBase.remoteServer = localStorage.getItem('couchServerAddr');
+			document.getElementById('couchServer').value = localStorage.getItem('couchServerAddr');
+		}
+		if (localStorage.getItem('couchDbName')){
+			dBase.remoteDbName = localStorage.getItem('couchDbName');
+			document.getElementById('couchDbName').value = localStorage.getItem('couchDbName');
+		}
+		// bluetooth
 		app.checkBluetooth();
+
 	},
     
 	// Check Bluetooth, list ports if enabled:
@@ -131,7 +138,7 @@ var app = {
 			// if not connected, do this:
 			// clear the screen and display an attempt to connect
 			app.clear();
-			app.display("Attempting to connect to" +
+			app.display("Attempting to connect to " +
 				app.deviceName + 
 				"Make sure the serial port is open on the target device.");
 			// attempt to connect:
@@ -242,7 +249,7 @@ var app = {
 */
 	saveToCouch: function(){
 		dBase.couchReplicate();
-		alert('attempting to save to CouchDB');
+		alert('attempting to connect to CouchDB');
 	},
 /*
 	set hostname and db name for remote couch DB
@@ -254,6 +261,7 @@ var app = {
 		// save it in local storage for next time
 		localStorage.setItem('couchServerAddr',dBase.remoteServer);
 		localStorage.setItem('couchDbName',dBase.remoteDbName);
+		//console.log('local storage: ' + localStorage.getItem('couchServerAddr'));
 	},
 
 /*
