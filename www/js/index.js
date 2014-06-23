@@ -1,9 +1,23 @@
-
 var app = {
 	deviceAddress: "AA:BB:CC:DD:EE:FF",  // get your mac address from bluetoothSerial.list
 	deviceName: "No Name",
 	pouchDBName: "mypouchgeo", // name of the database pouchDB uses locally on device (NOT remote couchDB)
+	/*
+	timeStored: new Date().getTime() / 1000, // track last save to PouchDB (milliseconds) 
+	timeInterval: 30 * 1000, // min time between each save to PouchDB (seconds to milliseconds)
+	// could also store in an array (or obj) and only record if it's not in the array 
+	//	-- replace the old sentence of a type with new sentence of that type
+	// example:
+	//	sentences.GPRMC = 'sfadsfdfs';
+	// 	sentences.GPXYZ = 'fdsfsdfsf'; // etc, etc..
+	// 	currentSentences = {}
+	// but this won't work because timestamps will always be different.
+	// could instead store time that each type was last recorded, and only record if it's been 30 secs
+	// example:
+	//	sentences.GPRMC = lastStoredTime; // etc 
+	*/
 	
+
 	// Application Constructor
 	initialize: function() {
 		this.bindEvents();
@@ -13,12 +27,12 @@ var app = {
 			this.pouchDBName = 'mypouchdb';
 		}
 		dBase.init(this.pouchDBName);
+		// if remote server info for CouchDB is stored, use it
+		if (localStorage.getItem('couchServerAddr')){
+			dBase.remoteServer = localStorage.getItem('couchServerAddr');
+			dBase.remoteDbName = localStorage.getItem('couchDbName');
+		}
 
-		// for debugging, store some test data in pouch
-		var testObj = {'app':'geo-bluetooth','debug':'foo', 'monkeys': 4, 'date': new Date() };
-		dBase.add(testObj,function(results){
-			//console.log('saved to pouch db');
-		});
 	},
 	// Bind Event Listeners
 	//
@@ -30,6 +44,7 @@ var app = {
 		scanButton.addEventListener('touchend', app.checkBluetooth, false);
 		devices.addEventListener('change', app.selectPort, false);
 		couchButton.addEventListener('touchend', app.saveToCouch, false);
+		configButton.addEventListener('touchend', app.setCouchServer, false);
 	},
 	// deviceready Event Handler
 	//
@@ -150,30 +165,31 @@ var app = {
 		app.display("Connected to: " + app.deviceName);
 		// change the button's name:
 		connectButton.innerHTML = "Disconnect";
+		// change button color
+		$(connectButton).removeClass('btn-success');
+		$(connectButton).addClass('btn-danger');
 		// set up a listener to listen for newlines
 		// and display any new data that's come in since
 		// the last newline:
 		bluetoothSerial.subscribe('\n', function (data) {
-			// if you get a $GPRMC sentence, clear the screen:
-			/*if (data.split(',')[0] === '$GPRMC') {
-				app.clear();
-			}*/
+			//console.log('GOT DATA: ' + data);
+			// *** TODO: should we limit how often it stores info? Every 30 sec? *** //
 
-			// if you get any nmea sentence :
+			// if you get any NMEA sentence, beginning with $ :
 			if (data.split(',')[0].substring(0,1) === '$') {
 				
 				// convert it to an object
-				nmeaObj = this.parseNmeaToObj(data);
+				nmeaObj = app.parseNmeaToObj(data);
 
-				// store to Pouch
+				/* ===== store to Pouch ===== */
 				dBase.add(nmeaObj,function(results){
 					//console.log('saved to pouch db');
 				});
+				/* ======= end Pouch ======== */
 
 				// clear screen
 				app.clear();
 			}
-
 			// display the sentence:
 			app.display(data);
 
@@ -188,6 +204,9 @@ var app = {
 		app.display("Disconnected from: " + app.deviceName);
 		// change the button's name:
 		connectButton.innerHTML = "Connect";
+		// change button color
+		$(connectButton).removeClass('btn-danger');
+		$(connectButton).addClass('btn-success');
 		// unsubscribe from listening:
 		bluetoothSerial.unsubscribe(
 			function (data) {
@@ -204,10 +223,17 @@ var app = {
 		// example sentence string: $GPRMC,180826.9,V,4043.79444,N,07359.60944,W,,,160614,013.0,W,N*19
 		// make it an array:
 		nmeaArr = nmeaStr.split(",");
+		sentenceType = nmeaArr[0].substring(1);
+
 		// but couch needs it to be an object:
 		nmeaObj = {};
+		// store the whole sentence
+		nmeaObj.nmeaSentence = nmeaStr;
+		// store the sentence type
+		nmeaObj.sentenceType = sentenceType;
+		// store the indiv fields (with numeric key names for now)
 		for (var i=0; i < nmeaArr.length; i++){
-			nmeaObj[i] = nmeaArr[i]; // numeric keys for now. the key names depend on type of sentence
+			nmeaObj[i] = nmeaArr[i]; 
 		}
 		return nmeaObj;
 	},
@@ -216,6 +242,18 @@ var app = {
 */
 	saveToCouch: function(){
 		dBase.couchReplicate();
+		alert('attempting to save to CouchDB');
+	},
+/*
+	set hostname and db name for remote couch DB
+*/
+	setCouchServer: function(){
+		dBase.remoteServer = document.getElementById('couchServer').value;
+		dBase.remoteDbName = document.getElementById('couchDbName').value;
+		alert('CouchDB settings saved.');
+		// save it in local storage for next time
+		localStorage.setItem('couchServerAddr',dBase.remoteServer);
+		localStorage.setItem('couchDbName',dBase.remoteDbName);
 	},
 
 /*
@@ -237,19 +275,6 @@ var app = {
 		display.appendChild(label);							// add the message node
 	},
 	
-	
-	/*displayNmea: function(nmeaObject) {
-		// will make this into a function that displays a JSON object:
-		var display = document.getElementById("message");// the message div
-		display.innerHTML = "";
-		for (var field in nmeaObject) {
-			display.innerHTML += field + ":" + nmeaObject[field] + "<br>";
-		}
-	},*/
-
-
-
-
 /*
     clears the message div:
 */

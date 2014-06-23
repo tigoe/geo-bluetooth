@@ -55,7 +55,7 @@ var dBase = {
 				//alert('Sync error.  ' + err_msg); 
 				//console.log('response '+JSON.stringify(res));
 				//console.log('error ' + err_msg);
-				alert('MY RESPONSE: '+ JSON.stringify(res) + 'MY ERROR MESSAGE: ' + err_msg);
+				alert('DB RESPONSE: '+ JSON.stringify(res) + 'DB ERROR MESSAGE: ' + err_msg);
 			} else {
 				alert('Successfully saved to CouchDB');
 				//console.log('___________sync success_____________');
@@ -63,7 +63,7 @@ var dBase = {
 				//console.log('error ' + JSON.stringify(err));
 			}
 		}};
-		var fullRemotePath = this.remoteServer + this.remoteDbName;
+		var fullRemotePath = this.remoteServer + this.remoteDbName; // TODO: correct for missing slash .. and http ... and port
 		this.db.replicate.to(fullRemotePath, opts);	
 	}
 

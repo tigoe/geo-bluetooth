@@ -9,7 +9,13 @@
 }
 #message {
 	margin: 0 1em;
-	/*border: 1px solid #ccc;*/
+	border: 1px solid #ccc;
 	padding: 1em;
 
+}
+#couchConfig{
+	margin: 1em;
+	border: 1px solid #333;
+	background-color: #eee;
+	padding: 1em;
 }

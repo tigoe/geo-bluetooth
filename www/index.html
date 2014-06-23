@@ -6,8 +6,6 @@
         <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
         <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" />
         
-
-        <!--<link rel="stylesheet" type="text/css" href="css/jquery.mobile-1.4.2.min.css" />-->
         <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
         <link rel="stylesheet" type="text/css" href="css/style.css" />
 
@@ -16,15 +14,27 @@
     <body>
         <div class="app">
             <div id="ui">
-                <button id="connectButton" class="button btn btn-default btn-lg" >Connect</button>
+                <button id="connectButton" class="button btn btn-success btn-lg" >Connect</button>
                 <button id="scanButton" class="button btn btn-default btn-lg">Scan</button>
             </div>
             <select id="devices" class="select form-control"></select>
         <div id="message">Hello.</div>
+        
+
+        <div id = "couchConfig">
+            <h3>Configure CouchDB</h3>
+            <label for="couch_server">Server URL</label>
+            <input type="text" name="couch_server" id="couchServer" value="http://192.168.1.2:5984/" class="form-control" />
+            <label for="couch_dbname">Database name</label>
+            <input type="text" name="couch_dbname" id="couchDbName" value="geo-bluetooth" class="form-control" />
+            <button id="configButton" class="button button btn btn-default btn-sm">Save</button>
+        </div>
+
         <button id="couchButton" class="button button btn btn-default btn-lg btn-info">Save To Couch</button>
 
         </div>
         <script type="text/javascript" src="cordova.js"></script>
+        <script type="text/javascript" src="js/lib/jquery-1.8.2.min.js"></script>
         <script type="text/javascript" src="js/lib/pouchdb-2.2.0.min.js"></script>
         <script type="text/javascript" src="js/dBase.js"></script>
         <script type="text/javascript" src="js/index.js"></script>
