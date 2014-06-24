@@ -55,22 +55,20 @@ var dBase = {
 
 		// option for couchDB sync
 		var opts = { live: false, complete:function(err,res){
+			var result_msg = false;
 			if (err){
 				err_msg = '';
 				for (var e in err){
 					err_msg += e + ': ' + err[e] + '____';
 				}
-				//alert('Sync error.  ' + err_msg); 
-				//console.log('response '+JSON.stringify(res));
-				//console.log('error ' + err_msg);
-				alert('DB RESPONSE: '+ JSON.stringify(res) + 'DB ERROR MESSAGE: ' + JSON.stringify(err));
+				result_msg = 'DB ERROR RESPONSE: '+ JSON.stringify(res) + 'DB ERROR MESSAGE: ' + JSON.stringify(err);
 			} else {
-				alert('Successfully saved to CouchDB');
-				callback();
-				//console.log('___________sync success_____________');
-				//console.log('response '+JSON.stringify(res));
-				//console.log('error ' + JSON.stringify(err));
+				//alert('Successfully saved to CouchDB');
+				app.showStatus('Successfully saved to CouchDB');
+				result_msg = 'Successfully saved to CouchDB'
+				
 			}
+			callback(result_msg);
 		}};
 		var fullRemotePath = this.remoteServer + this.remoteDbName; // TODO: correct for missing slash .. and http ... and port
 		this.db.replicate.to(fullRemotePath, opts);	

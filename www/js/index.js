@@ -28,8 +28,10 @@ var app = {
 		scanButton.addEventListener('touchend', app.checkBluetooth, false);
 		devices.addEventListener('change', app.selectPort, false);
 		couchButton.addEventListener('touchend', app.saveToCouch, false);
+		couchButton.addEventListener('click', app.saveToCouch, false); // for browser debugging
 		configButton.addEventListener('touchend', app.setCouchServer, false);
 		secondsButton.addEventListener('touchend', app.setBufferInterval, false);
+		$(".config_header").click(app.toggleConfigSettings);
 	},
 	// deviceready Event Handler
 	//
@@ -37,7 +39,6 @@ var app = {
 	// function, we must explicity call 'app.receivedEvent(...);'
 	onDeviceReady: function() {
 		// if remote server info for CouchDB is stored, use it
-		//console.log('local storage: ' + localStorage.getItem('couchServerAddr'));
 		if (localStorage.getItem('couchServerAddr')){
 			dBase.remoteServer = localStorage.getItem('couchServerAddr');
 			document.getElementById('couchServer').value = localStorage.getItem('couchServerAddr');
@@ -206,7 +207,7 @@ var app = {
 		var firstField = data.split(',')[0]; // usu. in format $GPXYZ
 		if (firstField === '$GPRMC') { //assume RMC is the beginning of a packet
 			// Save the stuff from the last packet
-			// but only if it has been more than n seconds since the last db store
+			//  ... but only if it has been more than n seconds since the last db store
 			if(new Date().getTime() > (app.timeStored + app.timeInterval)){
 				app.storeNmeaPacket(app.nmeaPacket);
 				// record the new time stored
@@ -220,15 +221,11 @@ var app = {
 			// clear screen
 			app.clear();
 		} 
-		// if you get any NMEA sentence, beginning with $ :
+		// if you get an NMEA sentence, beginning with $ :
 		if (firstField.substring(0,1) === '$') {	
-			// convert it to an object
-			//nmeaObj = app.parseNmeaToObj(data);
-
 			// save it to the packet array
-			// store just text sentence for now -- only convert to object if you're going to save it
+			// store just text sentence for now 
 			app.nmeaPacket.push(data); 
-			//app.nmeaPacket.push(nmeaObj);
 			app.display(data);
 		}
 	},
@@ -279,22 +276,32 @@ var app = {
 	update pouchDB to remote couchDB
 */
 	saveToCouch: function(){
-		if (app.portOpen){ // disconnect to BT if connected
+		
+		// disconnect to BT if connected
+		if (app.portOpen){ 
 			//app.closePort();
 			app.manageConnection();
-			/* TODO: fix status bar handling! */
+			// TODO: fix status bar handling! 
 			app.showStatus('Closed Bluetooth connection while connecting to DB');
 			app.display('Closed Bluetooth connection while connecting to DB');
 		}
-		dBase.couchReplicate(function(){ 
-			console.log("DEBUG: couchReplicate");
+
+		// save to couch
+		dBase.couchReplicate(function(alert_msg){ 
+			//console.log("DEBUG: couchReplicate");
+			app.changeProgessState('off'); // remove the progress wheel
+			if (alert_msg){
+				alert(alert_msg);
+			}
+			
 			// unless they've connected to BT before db procedure finished, re-connect
 			if (!portOpen){
 				app.manageConnection();
 				app.showStatus('Reconnected to Bluetooth.');
 			}
 		});
-		//alert('Attempting to connect to CouchDB ...');
+		app.changeProgessState('on');
+		
 	},
 /*
 	set hostname and db name for remote couch DB
@@ -438,5 +445,42 @@ var app = {
 	showStatus: function(msg){
 		statusDiv = document.getElementById("status");
 		statusDiv.innerHTML = msg;
+	},
+
+/*
+	UI elements
+*/
+	toggleConfigSettings: function(evt){
+		// form for this section
+		$(this).siblings("div.config_form").toggle();
+		$(this).children("span").toggleClass( "glyphicon-chevron-right glyphicon-chevron-down" );
+	},
+
+	changeProgessState: function(on_off){
+		if (on_off == 'on'){ // turn on
+			var loader_elements =  '<div id="load_overlay"><div id="load_container">';
+			loader_elements += '<img src="img/loading_lg.gif" class="loading_wheel" />';
+			loader_elements += '<p ".loading_msg">Connecting To CouchDB</p></div></div>';
+			$('.app').append(loader_elements);
+			// position the loading wheel + text -- wait for img to load
+			$('.loading_wheel').load(function(){ 
+				/*if ( $('body').width() >= $('.loading_wheel').width()){
+					var lmargin = ($('body').width() - $('.loading_wheel').width())/2;
+					var tmargin = ($('body').height() - $('.loading_wheel').height())/2;
+					$('.loading_wheel').css('margin-left',lmargin);
+					$('.loading_wheel').css('margin-top',tmargin);	
+				}*/
+				if ( $('body').width() >= $('#load_container').width()){
+					var lmargin = ($('body').width() - $('#load_container').width())/2;
+					var tmargin = ($('body').height() - $('#load_container').height())/2;
+					$('#load_container').css('margin-left',lmargin);
+					$('#load_container').css('margin-top',tmargin);	
+				}
+			});
+		} else { // turn off
+			$('#load_overlay').remove();
+		}	
 	}
+
+
 };

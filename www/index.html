@@ -23,19 +23,23 @@
         
 
         <div id = "couchConfig">
-            <h3>Configure CouchDB</h3>
-            <label for="couch_server">Server URL</label>
-            <input type="text" name="couch_server" id="couchServer" value="http://192.168.1.2:5984/" class="form-control" />
-            <label for="couch_dbname">Database name</label>
-            <input type="text" name="couch_dbname" id="couchDbName" value="geo-bluetooth" class="form-control" />
-            <button id="configButton" class="button button btn btn-default btn-sm">Save</button>
+            <h3 class = "config_header"><span class="glyphicon glyphicon-chevron-right"></span>Configure CouchDB</h3>
+            <div class="config_form">
+                <label for="couch_server">Server URL</label>
+                <input type="text" name="couch_server" id="couchServer" value="http://192.168.1.2:5984/" class="form-control" />
+                <label for="couch_dbname">Database name</label>
+                <input type="text" name="couch_dbname" id="couchDbName" value="geo-bluetooth" class="form-control" />
+                <button id="configButton" class="button button btn btn-default btn-sm">Save</button>
+            </div>
         </div>
         <div id="storageConfig">
-            <h3>Set Storage Frequency</h3>
-            <p>How often should NMEA data be stored to this device? (in seconds) </p>
-            <input type="number" name="seconds" id="secondsInput" value="30" class="form-control" size="2" /> 
-            <!--<input id="seconds_slider" type="range" min="10" max="600" value="30" step = "15" />-->
-            <button id="secondsButton" class="button button btn btn-default btn-sm">Save</button>
+            <h3 class = "config_header"><span class="glyphicon glyphicon-chevron-right"></span>Set Storage Frequency</h3>
+            <div class="config_form">
+                <p>How often should NMEA data be stored to this device? (in seconds) </p>
+                <input type="number" name="seconds" id="secondsInput" value="30" class="form-control" size="2" />
+                <!--<input id="seconds_slider" type="range" min="10" max="600" value="30" step = "15" />-->
+                <button id="secondsButton" class="button button btn btn-default btn-sm">Save</button>
+            </div>
         </div>
 
         <button id="couchButton" class="button button btn btn-default btn-lg btn-info">Save To Couch</button>
