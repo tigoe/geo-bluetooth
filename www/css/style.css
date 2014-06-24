@@ -4,18 +4,29 @@
 }
 
 .select {
-    margin: 2em 0;
+	width: 90% !important;
+    margin: 2em auto;
     
 }
 #message {
 	margin: 0 1em;
 	border: 1px solid #ccc;
 	padding: 1em;
-
+	min-height: 15em;
 }
-#couchConfig{
+#couchConfig, #storageConfig{
 	margin: 1em;
 	border: 1px solid #333;
 	background-color: #eee;
 	padding: 1em;
+}
+#secondsInput{
+	width:6em;
+}
+#status{
+	margin: 0 1em;
+	background-color: #eff1f2;
+	/*color: #468847;
+	background-color: #dff0d8;*/
+	border: 1px solid #ddd;
 }

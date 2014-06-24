@@ -18,7 +18,8 @@
                 <button id="scanButton" class="button btn btn-default btn-lg">Scan</button>
             </div>
             <select id="devices" class="select form-control"></select>
-        <div id="message">Hello.</div>
+            <div id="status">Status</div>
+            <div id="message">Hello.</div>
         
 
         <div id = "couchConfig">
@@ -28,6 +29,13 @@
             <label for="couch_dbname">Database name</label>
             <input type="text" name="couch_dbname" id="couchDbName" value="geo-bluetooth" class="form-control" />
             <button id="configButton" class="button button btn btn-default btn-sm">Save</button>
+        </div>
+        <div id="storageConfig">
+            <h3>Set Storage Frequency</h3>
+            <p>How often should NMEA data be stored to this device? (in seconds) </p>
+            <input type="number" name="seconds" id="secondsInput" value="30" class="form-control" size="2" /> 
+            <!--<input id="seconds_slider" type="range" min="10" max="600" value="30" step = "15" />-->
+            <button id="secondsButton" class="button button btn btn-default btn-sm">Save</button>
         </div>
 
         <button id="couchButton" class="button button btn btn-default btn-lg btn-info">Save To Couch</button>

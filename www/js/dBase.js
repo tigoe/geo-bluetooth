@@ -48,7 +48,7 @@ var dBase = {
 			}
 		});
 	},
-	couchReplicate: function(){ 
+	couchReplicate: function(callback){ 
 		if (!this.remoteServer || !this.remoteDbName){ 
 			return false;
 		}
@@ -63,9 +63,10 @@ var dBase = {
 				//alert('Sync error.  ' + err_msg); 
 				//console.log('response '+JSON.stringify(res));
 				//console.log('error ' + err_msg);
-				alert('DB RESPONSE: '+ JSON.stringify(res) + 'DB ERROR MESSAGE: ' + err_msg);
+				alert('DB RESPONSE: '+ JSON.stringify(res) + 'DB ERROR MESSAGE: ' + JSON.stringify(err));
 			} else {
 				alert('Successfully saved to CouchDB');
+				callback();
 				//console.log('___________sync success_____________');
 				//console.log('response '+JSON.stringify(res));
 				//console.log('error ' + JSON.stringify(err));

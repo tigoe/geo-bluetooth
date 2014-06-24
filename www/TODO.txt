@@ -1,9 +1,28 @@
 TODO
 
-- format objects w/ property names for RMC & GSV types
-- get sentences as a packet instead of one-by-one
-- buffer incoming data every 30 sec. (w/option to change interval)
-- make UI setting for changing interval
-- show the interval value on connect
-- stop BT logging when connecting to couch
-- convert the NMEA timestamp to human-readable
+x - format objects w/ property names for RMC & GSV types
+x - get sentences as a packet instead of one-by-one
+x - buffer incoming data every 30 sec. (w/option to change interval)
+x - make UI setting for changing interval
+x - show the interval value on connect
+x - stop BT logging when connecting to couch
+x - convert the NMEA timestamp to human-readable 
+- progress wheel when connecting to couch
+- show/hide config forms
+x - move nmea parse code out of openPort
+- clean up handling of messages in status bar, esp wrt showing that connection stopped b/c of DB
+- should it reconnect to BT once couch sync is done? (Code to do that isn't working currently)
+- give message as sentences are recorded to local (pouch, not couch) ?? eg, "Last recorded at 10:23"
+
+
+
+== extra: ==
+- create a new db in remote couch from phonegap? Pouch does not allow this. However, it could be done via CouchDB's REST interface directly. 
+		For example, if you run:
+			curl -X PUT http://127.0.0.1:5984/albums 
+		and the database 'albums' already exists, you will get this error:
+			{"error":"file_exists","reason":"The database could not be created, the file already exists."}
+		otherwise, it will be created 
+
+	(example from http://guide.couchdb.org/draft/api.html)
+
