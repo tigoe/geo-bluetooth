@@ -175,33 +175,6 @@ var app = {
 		// the last newline:
 		bluetoothSerial.subscribe('\n', function (data) {
 			app.handleNmeaData(data);
-			/*if (data.split(',')[0] === '$GPRMC') { //assume RMC is the beginning of a packet
-				// Save the stuff from the last packet
-				//   but only if it has been more than n seconds since the last db store
-				if(new Date().getTime() > (app.timeStored + app.timeInterval)){
-					app.storeNmeaPacket(app.nmeaPacket);
-					// record the new time stored
-					app.timeStored = new Date().getTime();
-					
-					// show the packet
-					app.displayNmeaPacket();
-				} 
-				// Begin a new packet 
-				app.nmeaPacket = [];
-				// clear screen
-				// app.clear();
-
-			} 
-			// if you get any NMEA sentence, beginning with $ :
-			if (data.split(',')[0].substring(0,1) === '$') {	
-				// convert it to an object
-				nmeaObj = app.parseNmeaToObj(data);
-
-				// save it to the packet array
-				app.nmeaPacket.push(nmeaObj);
-			}*/
-			// display the sentence:
-			//app.display(data);
 		});
 	},
 

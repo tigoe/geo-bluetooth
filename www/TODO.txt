@@ -1,5 +1,5 @@
 TODO
-
+- update README.md with couch instructions
 x - format objects w/ property names for RMC & GSV types
 x - get sentences as a packet instead of one-by-one
 x - buffer incoming data every 30 sec. (w/option to change interval)
