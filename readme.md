@@ -3,7 +3,7 @@ Geo-Blueotooth
 This is a project to test reading GPS data from a Garmin GLO via Bluetooth. It uses Don Coleman's [BluetoothSerial plugin for PhoneGap/Cordova](https://github.com/don/BluetoothSerial).
 
 
-To install the project:
+### To install the project:
 
 * Clone this repo
 
@@ -25,7 +25,7 @@ To install the project:
 
 	$ cordova run
 
-## To set up CouchDB for use with the app.
+### To set up CouchDB for use with the app.
 
 * Download and install CouchDB for OSX as described in <http://docs.couchdb.org/en/latest/install/mac.html#installation-using-the-apache-couchdb-native-application>
 
