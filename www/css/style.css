@@ -9,29 +9,70 @@
     
 }
 #message {
-	margin: 0 1em;
 	border: 1px solid #ccc;
+	margin: 0 1em;
 	padding: 1em;
-	min-height: 15em;
+	min-height: 8em;
+	display: none;
+}
+#nmea_viewer{
+	height: 20em;
+	overflow: auto;
+	margin: 0 1em;
+	padding: 1em;
+	/*border: 1px solid #ccc;*/
+	background-color: #333;
+	color: #ccc;
+}
+.header_bar{
+	background-color: #000;
+	color: #39b3d7;
+	margin: 0 1em;
+	padding: .5em 1em;
+}
+.header_bar h4{
+	padding:0;
+	margin:0;
+	font-weight: normal;
 }
 #couchConfig, #storageConfig{
 	margin: 1em;
-	border: 1px solid #333;
+	border: 1px solid #ccc;
 	background-color: #eee;
 	padding: 1em;
+}
+#couchButton{
+	float:left;
+}
+#couchStatusMsg{
+	margin: 1em;
+	padding: 1em;
+	/*border:1px solid #333;*/
 }
 #secondsInput{
 	width:6em;
 	
 }
 #status{
-	margin: 0 1em;
+	/*margin: 0 1em;
 	background-color: #eff1f2;
-	/*color: #468847;
-	background-color: #dff0d8;*/
-	border: 1px solid #ddd;
+	*/
+	min-height: 3em;
+	margin: 0 1em;
+	border: 1px solid #ccc;
+	padding: 1em;
+}
+#device_status,#db_status,#bt_status{
+
+}
+
+.config_header{
+	padding: 0;
+	margin: 0;
+	font-size: 1.2em;
 }
 .config_form{
+	margin-top: 1em;
 	display: none;
 }
 .config_form input{
@@ -41,20 +82,16 @@
 	padding-right: .5em;
 	font-size: 75%;
 }
+
+/*
 #load_overlay{
 	width: 100%;
 	height: 100%;
 	position: absolute;
 	top:0;
 	left: 0;
-	background-color: #fff;
+	background-color: #ccc;
 	opacity: 0.7;
-}
-.loading_wheel{
-	/*position: absolute;
-	top: 0;
-	left: 0;*/
-
 }
 #load_container{
 	display:block;
@@ -64,4 +101,5 @@
 	text-align: center;
 	font-weight: bold;
 	font-size: 200%;
-}
+}*/
+

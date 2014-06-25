@@ -7,22 +7,21 @@ x - make UI setting for changing interval
 x - show the interval value on connect
 x - stop BT logging when connecting to couch
 x - convert the NMEA timestamp to human-readable 
-x- progress wheel when connecting to couch
-x- show/hide config forms
+x - RE-DO: progress wheel when connecting to couch -- don't take over screen
+x - show/hide config forms
 x - move nmea parse code out of openPort()
-- clean up handling of messages in status bar, esp wrt showing that connection stopped b/c of DB
-- should it reconnect to BT once couch sync is done? (Code to do that isn't working currently)
+x - clean up handling of messages in status bar, esp wrt showing that connection stopped b/c of DB
+? - should it reconnect to BT once couch sync is done? (Code to do that isn't working currently)
 - give message when sentences are recorded to local (pouch, not couch) ?? eg, "Last recorded at 10:23"
-
+? - maybe instead of disconnecting from BT, just prevent saving to DB
+- (minor) collapse config form again on save <-- buggy. putting aside for now
+x - fix db error msg
+- use form tags so that "Go" button on keyboard will work (?? + make button submit type??)
 
 
 == extra: ==
-- create a new db in remote couch from phonegap? Pouch does not allow this. However, it could be done via CouchDB's REST interface directly. 
-		For example, if you run:
-			curl -X PUT http://127.0.0.1:5984/albums 
-		and the database 'albums' already exists, you will get this error:
-			{"error":"file_exists","reason":"The database could not be created, the file already exists."}
-		otherwise, it will be created 
+!! UPDATE creating new database DOES work! If the db doesn't exist, couch/pouch creates it. So you can use the app w/o first creating a couch db.
 
-	(example from http://guide.couchdb.org/draft/api.html)
+
+
 

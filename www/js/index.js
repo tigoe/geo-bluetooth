@@ -6,6 +6,8 @@ var app = {
 	timeStored: new Date().getTime(), // track last save to PouchDB (milliseconds) 
 	timeInterval: 30 * 1000, // min time between each save to PouchDB (seconds to milliseconds)
 	portOpen: false, // keep track of whether BT is connected
+	progressOverlayOn: false, //track when app is in waiting state with progress wheel
+	couchConnInProgress: false,
 
 	// Application Constructor
 	initialize: function() {
@@ -28,7 +30,7 @@ var app = {
 		scanButton.addEventListener('touchend', app.checkBluetooth, false);
 		devices.addEventListener('change', app.selectPort, false);
 		couchButton.addEventListener('touchend', app.saveToCouch, false);
-		couchButton.addEventListener('click', app.saveToCouch, false); // for browser debugging
+		//couchButton.addEventListener('click', app.saveToCouch, false); // 'click' evt for browser debugging
 		configButton.addEventListener('touchend', app.setCouchServer, false);
 		secondsButton.addEventListener('touchend', app.setBufferInterval, false);
 		$(".config_header").click(app.toggleConfigSettings);
@@ -58,6 +60,7 @@ var app = {
 		var notEnabled = function() {
 			app.clear();
 			app.display("Bluetooth is not enabled.");
+			app.displayStatus('bt',"Bluetooth is not enabled.");
 		};
 		
 		// if isEnabled returns success, this function is called:
@@ -88,6 +91,7 @@ var app = {
 					if (results.length === 0) {
 						app.clear();
 						app.display("No BT Serial devices found");
+						app.displayStatus('bt',"No BT Serial devices found");
 					}
 					// show the name of the selected port:
 					app.selectPort();
@@ -115,6 +119,7 @@ var app = {
 		app.deviceName = devices.options[devices.selectedIndex].innerHTML;
 		app.clear();
 		app.display(app.deviceAddress + " " + app.deviceName); 
+		app.displayStatus('device',app.deviceAddress + " " + app.deviceName); 
 	},
 
         
@@ -132,6 +137,7 @@ var app = {
 			app.display("Attempting to connect to " +
 				app.deviceName + 
 				"Make sure the serial port is open on the target device.");
+			app.displayStatus('device',"Attempting to connect to " + app.deviceName);
 			// attempt to connect:
 			bluetoothSerial.connect(
 				app.deviceAddress,  // device to connect to
@@ -143,7 +149,8 @@ var app = {
 		// disconnect() will get called only if isConnected() (below)
 		// returns success  In other words, if  connected, then disconnect:
 		var disconnect = function () {
-			app.display("attempting to disconnect");
+			app.display("Attempting to disconnect");
+			app.displayStatus('device',"Attempting to disconnect from " + app.deviceName);
 			// if connected, do this:
 			bluetoothSerial.disconnect(
 				app.closePort,     // stop listening to the port
@@ -160,10 +167,14 @@ var app = {
 */
 	openPort: function() {
 		// if you get a good Bluetooth serial connection:
-		app.display("Connected to: " + app.deviceName);
+		//app.display("Connected to: " + app.deviceName);
 		var secs = app.timeInterval / 1000;
 		var statusMsg = "Connected to: " + app.deviceName + ". Storing to device every " + secs + " seconds";
-		app.showStatus(statusMsg);
+		//app.showStatus(statusMsg);
+		app.display(statusMsg);
+		app.displayStatus('device',statusMsg);
+		app.displayStatus('bt',''); //clear bluetooth status message
+		app.displayStatus('db',''); //clear db status message
 		app.portOpen = true;
 		
 		// change the button's name:
@@ -185,7 +196,8 @@ var app = {
 	closePort: function() {
 		// if you get a good Bluetooth serial connection:
 		app.display("Disconnected from: " + app.deviceName);
-		app.showStatus("Disconnected from: " + app.deviceName);
+		app.displayStatus('device',"Disconnected from: " + app.deviceName);
+		//app.showStatus("Disconnected from: " + app.deviceName);
 		app.portOpen = false;
 		// change the button's name:
 		connectButton.innerHTML = "Connect";
@@ -195,7 +207,7 @@ var app = {
 		// unsubscribe from listening:
 		bluetoothSerial.unsubscribe(
 			function (data) {
-				app.display(data);
+				//app.display(data); //returns "OK"
 			},
 			app.showError
 		);
@@ -213,20 +225,20 @@ var app = {
 				// record the new time stored
 				app.timeStored = new Date().getTime();
 				
-				// show the packet contents
-				//app.displayNmeaPacket(app.nmeaPacket);
 			} 
 			// Begin a new packet 
 			app.nmeaPacket = [];
 			// clear screen
-			app.clear();
+			//app.clear();
+			app.clearEl('nmea_viewer');
 		} 
 		// if you get an NMEA sentence, beginning with $ :
 		if (firstField.substring(0,1) === '$') {	
 			// save it to the packet array
 			// store just text sentence for now 
 			app.nmeaPacket.push(data); 
-			app.display(data);
+			//app.display(data);
+			app.displayToEl(data,'nmea_viewer');
 		}
 	},
 
@@ -276,31 +288,43 @@ var app = {
 	update pouchDB to remote couchDB
 */
 	saveToCouch: function(){
-		
+		// turn on progress wheel
+		//app.changeProgessState('on');
+		app.changeConnectBtnState();
+		//$('#couchButton').text('Connecting to Couch');
+		app.displayStatus('db','Connecting to Couch');
+
 		// disconnect to BT if connected
 		if (app.portOpen){ 
 			//app.closePort();
 			app.manageConnection();
 			// TODO: fix status bar handling! 
-			app.showStatus('Closed Bluetooth connection while connecting to DB');
+			//app.showStatus('Closed Bluetooth connection while connecting to DB');
 			app.display('Closed Bluetooth connection while connecting to DB');
+			app.displayStatus('bt','Closed Bluetooth connection while connecting to DB');
 		}
 
 		// save to couch
 		dBase.couchReplicate(function(alert_msg){ 
 			//console.log("DEBUG: couchReplicate");
-			app.changeProgessState('off'); // remove the progress wheel
+			//app.changeProgessState('off'); // remove the progress wheel
+			//$('#couchButton').text('Save to Couch');
+			app.changeConnectBtnState();
 			if (alert_msg){
-				alert(alert_msg);
+				//alert(alert_msg);
+				app.display(alert_msg);
+				$('#couchStatusMsg').html(alert_msg);
+				app.displayStatus('db',alert_msg);
 			}
 			
 			// unless they've connected to BT before db procedure finished, re-connect
 			if (!portOpen){
 				app.manageConnection();
-				app.showStatus('Reconnected to Bluetooth.');
+				//app.showStatus('Reconnected to Bluetooth.');
+				app.display('Reconnected to Bluetooth.');
+				app.displayStatus('bt','Reconnected to Bluetooth.');
 			}
 		});
-		app.changeProgessState('on');
 		
 	},
 /*
@@ -313,6 +337,8 @@ var app = {
 		// save it in local storage for next time
 		localStorage.setItem('couchServerAddr',dBase.remoteServer);
 		localStorage.setItem('couchDbName',dBase.remoteDbName);
+		// collapse ui element
+		//app.configBoxExpandCollapse($('#couchConfig .config_form'));
 		///console.log('local storage : ' + localStorage.getItem('couchServerAddr'));
 	},
 
@@ -321,29 +347,18 @@ var app = {
 */
 	setBufferInterval: function(){
 		var secs = document.getElementById('secondsInput').value;
-		if (!secs || secs < 15){ secs = 15;} // wait at least 15 seconds
+		if (!secs || secs < 15){ secs = 15;} // min 15 seconds
 		app.timeInterval = secs * 1000;
 		alert('Storage frequency set to '+ secs);
+		//app.configBoxExpandCollapse($('#storageConfig .config_form'));
 	},
 /*
-	displays all the nmea sentences in an array (aka, packet)
-*/
-	displayNmeaPacket: function(nmeaArr){ 
-		
-		//app.display('Stored NMEA sentences to device:');
-		// the nmea objects retain the original sentence in 'nmeaSentence' property
-		for (var i in nmeaArr){
-			app.display(nmeaArr[i].nmeaSentence);
-			//app.display(nmeaArr[i]);
-		}
-	},
-/*
-	An object containing functions to process diff types of NMEA sentences
+	Wrapper around functions to process different types of NMEA sentences
 	(some code borrowed from https://github.com/jamesp/node-nmea)
 */
 	nmeaDecode: {
 		rmc: function(nmeaArr){
-			dt = app.parseGPSDateTime(nmeaArr[9],nmeaArr[1]);
+			dt = app.parseGPSDateTime(nmeaArr[9],nmeaArr[1]); //human-readable datetime
 			return {
 				sentenceType: nmeaArr[0],
 				UTtime: nmeaArr[1],
@@ -365,7 +380,7 @@ var app = {
 			/* 
 		  	GSV has a variable number of fields, depending on the number of satellites found
 				example: $GPGSV,3,1,12, 05,58,322,36, 02,55,032,, 26,50,173,, 04,31,085, 00*79
-			The min number of fields is 4
+			The min number of fields is 4. After that, each satellite has a group of 4 values 
 			
 		  	*/
 			var numFields = (nmeaArr.length - 4) / 4;
@@ -391,6 +406,8 @@ var app = {
 /*
 	turn GPS date/time text (eg, date May 23, 2012 is 230512) into JS Date object
 	function modified from https://github.com/dmh2000/node-nmea
+	@udate in format ddmmyy, 	example: 160614   <-- June 16, 2014
+	@utime in format hhmmss.ss, example: 180827.0 <-- 18:08:27.0
 */
 	parseGPSDateTime: function(udate, utime) {
 		// numbers must be strings first in order to use slice()
@@ -438,48 +455,82 @@ var app = {
 		var display = document.getElementById("message");
 		display.innerHTML = "";
 	},
-
 /*
-    changes status bar text to @msg
+	display @message to a particular element @div
 */
-	showStatus: function(msg){
-		statusDiv = document.getElementById("status");
-		statusDiv.innerHTML = msg;
+	displayToEl: function(message, div){
+		var display = document.getElementById(div),// the message div
+		lineBreak = document.createElement("br"),     // a line break
+		textNode = document.createTextNode(message);     // create the label
+		
+		display.appendChild(lineBreak);						// add a line break
+		display.appendChild(textNode);	
+	},
+/*
+	clear contents of a particular element @div
+*/
+	clearEl: function(div){
+		var display = document.getElementById(div);
+		display.innerHTML = "";
+	},
+	displayStatus: function(status_type,msg){
+		console.log('st ' + status_type);
+		var div = false;
+		switch(status_type){
+			case 'db':
+			case 'device':
+			case 'bt':
+				div = status_type + '_status';
+		}
+		console.log('display '+div);
+		if (div){
+			//app.clearEl(div);
+			//app.displayToEl(div,msg);
+			$('#'+div).html(msg);
+			console.log($('#'+div));
+		}
 	},
 
+
+/* ===== UI elements ===== */
 /*
-	UI elements
+	event listener for opening/closing configuration form boxes
 */
 	toggleConfigSettings: function(evt){
-		// form for this section
+		// form for this config section
 		$(this).siblings("div.config_form").toggle();
+		// icon in header
 		$(this).children("span").toggleClass( "glyphicon-chevron-right glyphicon-chevron-down" );
 	},
+/*
+	toggle the config form boxes. takes form object @form_el 
+*/ 
+	configBoxExpandCollapse: function(form_el){ //form element
+		// show/hide the form
+		form_el.toggle();
+		//el.children("span").toggleClass( "glyphicon-chevron-right glyphicon-chevron-down" );
+		// change arrow icon in header 
+		form_el.siblings("h3.config_header span").toggleClass( "glyphicon-chevron-right glyphicon-chevron-down" );
+	},
+/*
+	a simpler progress wheel display
+*/
+	changeConnectBtnState: function(){
 
-	changeProgessState: function(on_off){
-		if (on_off == 'on'){ // turn on
-			var loader_elements =  '<div id="load_overlay"><div id="load_container">';
-			loader_elements += '<img src="img/loading_lg.gif" class="loading_wheel" />';
-			loader_elements += '<p ".loading_msg">Connecting To CouchDB</p></div></div>';
-			$('.app').append(loader_elements);
-			// position the loading wheel + text -- wait for img to load
-			$('.loading_wheel').load(function(){ 
-				/*if ( $('body').width() >= $('.loading_wheel').width()){
-					var lmargin = ($('body').width() - $('.loading_wheel').width())/2;
-					var tmargin = ($('body').height() - $('.loading_wheel').height())/2;
-					$('.loading_wheel').css('margin-left',lmargin);
-					$('.loading_wheel').css('margin-top',tmargin);	
-				}*/
-				if ( $('body').width() >= $('#load_container').width()){
-					var lmargin = ($('body').width() - $('#load_container').width())/2;
-					var tmargin = ($('body').height() - $('#load_container').height())/2;
-					$('#load_container').css('margin-left',lmargin);
-					$('#load_container').css('margin-top',tmargin);	
-				}
-			});
-		} else { // turn off
-			$('#load_overlay').remove();
-		}	
+		// if progress is off, start it
+		if (app.couchConnInProgress === false){
+			app.couchConnInProgress = true;
+			// clear the Couch status box
+			$('#couchStatusMsg').html('');
+			var img = '<img src="img/blueloader32.gif" />';
+			var txt = 'Connecting to Couch ...';
+			$('#couchButton').html(img + ' ' + txt);
+		} else { // if it's on, stop it
+			app.couchConnInProgress = false; 
+			$('#couchButton').html('Save to Couch');
+			
+		}
+		
 	}
 
 

@@ -61,10 +61,18 @@ var dBase = {
 				for (var e in err){
 					err_msg += e + ': ' + err[e] + '____';
 				}
+				/*
 				result_msg = 'DB ERROR RESPONSE: '+ JSON.stringify(res) + 'DB ERROR MESSAGE: ' + JSON.stringify(err);
+				*/
+				result_msg = 'There was an error connecting to Couch database ';
+				result_msg += dBase.remoteDbName;
+				result_msg += ' on server ' + dBase.remoteServer;
+				result_msg += ' Database response: ' + err.toString();
+				//alert('debug: couch error in couchReplicate');
+				app.display('debug: couch error in couchReplicate');
 			} else {
 				//alert('Successfully saved to CouchDB');
-				app.showStatus('Successfully saved to CouchDB');
+				//app.showStatus('Successfully saved to CouchDB');
 				result_msg = 'Successfully saved to CouchDB'
 				
 			}

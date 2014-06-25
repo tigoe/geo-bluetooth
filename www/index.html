@@ -18,9 +18,14 @@
                 <button id="scanButton" class="button btn btn-default btn-lg">Scan</button>
             </div>
             <select id="devices" class="select form-control"></select>
-            <div id="status">Status</div>
+            <div id="status">
+                <div id="device_status">&nbsp;</div>
+                <div id="db_status">&nbsp;</div>
+                <div id="bt_status">&nbsp;</div>
+            </div>
             <div id="message">Hello.</div>
-        
+            <div class="header_bar"><h4>NMEA Log</h4></div>
+            <div id="nmea_viewer">NMEA</div>
 
         <div id = "couchConfig">
             <h3 class = "config_header"><span class="glyphicon glyphicon-chevron-right"></span>Configure CouchDB</h3>
@@ -43,7 +48,7 @@
         </div>
 
         <button id="couchButton" class="button button btn btn-default btn-lg btn-info">Save To Couch</button>
-
+        <div id="couchStatusMsg"></div>
         </div>
         <script type="text/javascript" src="cordova.js"></script>
         <script type="text/javascript" src="js/lib/jquery-1.8.2.min.js"></script>
