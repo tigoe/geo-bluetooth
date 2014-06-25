@@ -33,7 +33,7 @@ This is a project to test reading GPS data from a Garmin GLO via Bluetooth. It u
 
 * Confirm that Couch is running by visiting localhost:5984/_utils (or *127.0.0.1* instead of *localhost*) in a browser. This is the GUI interface for CouchDB, called *Futon*.
 
-* In Futon, choose "Create New Database" and call the new database whatever you like. 
+* [UPDATE! optional. Couch will create a new database in the sync process if it does not exist.] In Futon, choose "Create New Database" and call the new database whatever you like. 
 
 * In OSX System Preferences > Network, find your IP address. It will say something like, *"Wi-Fi is connected to MyAwesomeNetwork and has the IP address 192.168.1.2"*
 
