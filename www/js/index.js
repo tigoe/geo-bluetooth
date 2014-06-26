@@ -5,6 +5,7 @@ var app = {
 	nmeaPacket: [], // group of nmea sentences, used for buffering	
 	timeStored: new Date().getTime(), // track last save to PouchDB (milliseconds) 
 	timeInterval: 30 * 1000, // min time between each save to PouchDB (seconds to milliseconds)
+	//timeInterval: 30, //seconds
 	portOpen: false, // keep track of whether BT is connected
 	progressOverlayOn: false, //track when app is in waiting state with progress wheel
 	couchConnInProgress: false,
@@ -40,7 +41,7 @@ var app = {
 	// The scope of 'this' is the event. In order to call the 'receivedEvent'
 	// function, we must explicity call 'app.receivedEvent(...);'
 	onDeviceReady: function() {
-		// if remote server info for CouchDB is stored, use it
+		// get saved settings, if there are any
 		if (localStorage.getItem('couchServerAddr')){
 			dBase.remoteServer = localStorage.getItem('couchServerAddr');
 			document.getElementById('couchServer').value = localStorage.getItem('couchServerAddr');
@@ -49,18 +50,20 @@ var app = {
 			dBase.remoteDbName = localStorage.getItem('couchDbName');
 			document.getElementById('couchDbName').value = localStorage.getItem('couchDbName');
 		}
+		if (localStorage.getItem('timeInterval')){
+			app.timeInterval = localStorage.getItem('timeInterval');
+			document.getElementById('secondsInput').value = localStorage.getItem('timeInterval');
+		}
+
 		// bluetooth
 		app.checkBluetooth();
-
 	},
     
 	// Check Bluetooth, list ports if enabled:
-	checkBluetooth: function() {          
+	checkBluetooth: function() {   
 		// if isEnabled returns failure, this function is called:
 		var notEnabled = function() {
-			app.clear();
-			app.display("Bluetooth is not enabled.");
-			app.displayStatus('bt',"Bluetooth is not enabled.");
+			app.displayStatus('device',"Bluetooth is not enabled.");
 		};
 		
 		// if isEnabled returns success, this function is called:
@@ -89,9 +92,7 @@ var app = {
 					}
 					
 					if (results.length === 0) {
-						app.clear();
-						app.display("No BT Serial devices found");
-						app.displayStatus('bt',"No BT Serial devices found");
+						app.displayStatus('device',"No BT Serial devices found");
 					}
 					// show the name of the selected port:
 					app.selectPort();
@@ -99,7 +100,7 @@ var app = {
 					
 				// called if something goes wrong with isEnabled:
 				function(error) {
-					app.display(JSON.stringify(error));
+					//app.display(JSON.stringify(error));
 				}
 			);
 		};
@@ -117,8 +118,8 @@ var app = {
 		// use the first item from the list as your address:
 		app.deviceAddress = devices.options[devices.selectedIndex].value;
 		app.deviceName = devices.options[devices.selectedIndex].innerHTML;
-		app.clear();
-		app.display(app.deviceAddress + " " + app.deviceName); 
+		//app.clear();
+		//app.display(app.deviceAddress + " " + app.deviceName); 
 		app.displayStatus('device',app.deviceAddress + " " + app.deviceName); 
 	},
 
@@ -127,16 +128,10 @@ var app = {
     Connects if not connected, and disconnects if connected:
 */
 	manageConnection: function() {
-		
 		// connect() will get called only if isConnected() (below)
 		// returns failure. In other words, if not connected, then connect:
 		var connect = function () {
 			// if not connected, do this:
-			// clear the screen and display an attempt to connect
-			app.clear();
-			app.display("Attempting to connect to " +
-				app.deviceName + 
-				"Make sure the serial port is open on the target device.");
 			app.displayStatus('device',"Attempting to connect to " + app.deviceName);
 			// attempt to connect:
 			bluetoothSerial.connect(
@@ -149,7 +144,7 @@ var app = {
 		// disconnect() will get called only if isConnected() (below)
 		// returns success  In other words, if  connected, then disconnect:
 		var disconnect = function () {
-			app.display("Attempting to disconnect");
+			//app.display("Attempting to disconnect");
 			app.displayStatus('device',"Attempting to disconnect from " + app.deviceName);
 			// if connected, do this:
 			bluetoothSerial.disconnect(
@@ -167,19 +162,18 @@ var app = {
 */
 	openPort: function() {
 		// if you get a good Bluetooth serial connection:
-		//app.display("Connected to: " + app.deviceName);
 		var secs = app.timeInterval / 1000;
-		var statusMsg = "Connected to: " + app.deviceName + ". Storing to device every " + secs + " seconds";
-		//app.showStatus(statusMsg);
-		app.display(statusMsg);
-		app.displayStatus('device',statusMsg);
-		app.displayStatus('bt',''); //clear bluetooth status message
+		var startTime = moment().format('HH:mm, MMM DD');
+
+		app.displayStatus('device',"Connected to <b>" + app.deviceName + "</b> at " + startTime);
+		app.displayStatus('freq', "Storing to device every " + secs + " seconds");
 		app.displayStatus('db',''); //clear db status message
+
 		app.portOpen = true;
 		
 		// change the button's name:
 		connectButton.innerHTML = "Disconnect";
-		// change button color
+		// change button color (class)
 		$(connectButton).removeClass('btn-success');
 		$(connectButton).addClass('btn-danger');
 		// set up a listener to listen for newlines
@@ -195,7 +189,7 @@ var app = {
 */
 	closePort: function() {
 		// if you get a good Bluetooth serial connection:
-		app.display("Disconnected from: " + app.deviceName);
+		//app.display("Disconnected from: " + app.deviceName);
 		app.displayStatus('device',"Disconnected from: " + app.deviceName);
 		//app.showStatus("Disconnected from: " + app.deviceName);
 		app.portOpen = false;
@@ -220,30 +214,27 @@ var app = {
 		if (firstField === '$GPRMC') { //assume RMC is the beginning of a packet
 			// Save the stuff from the last packet
 			//  ... but only if it has been more than n seconds since the last db store
-			if(new Date().getTime() > (app.timeStored + app.timeInterval)){
+			//  ... AND only if we're not connecting to couch right now
+			//  ... AND if there's something in the packet array to be stored
+			if(new Date().getTime() > (app.timeStored + app.timeInterval) && !app.couchConnInProgress && app.nmeaPacket.length > 0){
+				// (now setting the new timeStored in the db add() callback, not here)
 				app.storeNmeaPacket(app.nmeaPacket);
-				// record the new time stored
-				app.timeStored = new Date().getTime();
-				
 			} 
 			// Begin a new packet 
 			app.nmeaPacket = [];
 			// clear screen
-			//app.clear();
-			app.clearEl('nmea_viewer');
+			app.clearEl('live_nmea');
 		} 
 		// if you get an NMEA sentence, beginning with $ :
 		if (firstField.substring(0,1) === '$') {	
 			// save it to the packet array
-			// store just text sentence for now 
+			// (store just sentence string for now, not object) 
 			app.nmeaPacket.push(data); 
-			//app.display(data);
-			app.displayToEl(data,'nmea_viewer');
+			app.displayToEl(data,'live_nmea');
 		}
 	},
-
 /*
-	converts an NMEA sentence into an object
+	converts an NMEA sentence into an object for the datastore
 */
 	parseNmeaToObj: function(nmeaStr){
 		// example sentence string: $GPRMC,180826.9,V,4043.79444,N,07359.60944,W,,,160614,013.0,W,N*19
@@ -251,7 +242,7 @@ var app = {
 		nmeaArr = nmeaStr.split(",");
 		
 		// find the type
-		typeProp = nmeaArr[0].slice(-3).toLowerCase();
+		typeProp = nmeaArr[0].slice(-3).toLowerCase(); //eg: rmc
 		// process the sentence if the type is in the nmeaDecode object
 		if(typeProp in app.nmeaDecode){
 			nmeaObj = app.nmeaDecode[typeProp](nmeaArr);
@@ -264,23 +255,37 @@ var app = {
 				nmeaObj[i] = nmeaArr[i]; 
 			}
 		}
-		// store the whole sentence regardless of type
-		nmeaObj.nmeaSentence = nmeaStr;
-		
+		// store the whole sentence, regardless of type
+		nmeaObj.nmeaSentence = nmeaStr;		
 		return nmeaObj;
 	},
 /*
 	store the array of NMEA sentence objects to Pouch
+	@packetArr is an array of *strings* that get translated to objects
 */	
 	storeNmeaPacket: function(packetArr){
+		var d = new Date(app.timeStored);
+		m = String(d.getMinutes());
+		m = (m < 10) ? String('0') + m : m; //zero pad for nums < 10
+		s = String(d.getSeconds());
+		s = (s < 10) ? String('0') + s : s; //zero pad
+		var fdate = d.getHours() + ':'+ m + ':' + s;
+		var display_str = '<p>NMEA record saved at ' + fdate + '</p>' ;
+
 		// walk thru array & convert each NMEA string to object 
 		for (var i in packetArr){
+			display_str += packetArr[i] + '<br/>'; // append display str
 			packetArr[i] = app.parseNmeaToObj(packetArr[i]);
 		}
+		// display time stored and sentences stored
+		app.clearEl('last_nmea');
+		app.displayToEl(display_str,'last_nmea');
 
-		// add in all records in array in bulk
+		// send all records in array in bulk
 		dBase.add(packetArr,function(results){
-			console.log('saved to pouch db');
+			// record the new time stored
+			app.timeStored = new Date().getTime();
+			//console.log('saved to pouch db');	
 		});
 		
 	},
@@ -288,58 +293,63 @@ var app = {
 	update pouchDB to remote couchDB
 */
 	saveToCouch: function(){
-		// turn on progress wheel
-		//app.changeProgessState('on');
-		app.changeConnectBtnState();
-		//$('#couchButton').text('Connecting to Couch');
-		app.displayStatus('db','Connecting to Couch');
+		app.changeConnectBtnState(); // change to progress button - also sets app.couchConnInProgress prop
+		app.displayStatus('db','Connecting to CouchDB. Paused device storage.');
 
-		// disconnect to BT if connected
-		if (app.portOpen){ 
-			//app.closePort();
-			app.manageConnection();
-			// TODO: fix status bar handling! 
-			//app.showStatus('Closed Bluetooth connection while connecting to DB');
-			app.display('Closed Bluetooth connection while connecting to DB');
-			app.displayStatus('bt','Closed Bluetooth connection while connecting to DB');
+		// make sure there's a server address set
+		if (!dBase.remoteServer || dBase.remoteServer == 'http://my.ip.addr:5984/'){
+			alert('To connect to CouchDB, please set the server address.');
+		} else {
+			// save to couch
+			dBase.couchReplicate(function(alert_msg,success){ 
+				app.changeConnectBtnState();
+				if (alert_msg){
+					// show in couch status area
+					$('#couchStatusMsg').html(alert_msg);
+
+					// if it's an error, show short version in top status bar.
+					if (!success){ alert_msg = "Could not connect to CouchDB."; } 
+					alert_msg += " Resumed device storage.";	
+					app.displayStatus('db',alert_msg);
+				}
+			});
 		}
-
-		// save to couch
-		dBase.couchReplicate(function(alert_msg){ 
-			//console.log("DEBUG: couchReplicate");
-			//app.changeProgessState('off'); // remove the progress wheel
-			//$('#couchButton').text('Save to Couch');
-			app.changeConnectBtnState();
-			if (alert_msg){
-				//alert(alert_msg);
-				app.display(alert_msg);
-				$('#couchStatusMsg').html(alert_msg);
-				app.displayStatus('db',alert_msg);
-			}
-			
-			// unless they've connected to BT before db procedure finished, re-connect
-			if (!portOpen){
-				app.manageConnection();
-				//app.showStatus('Reconnected to Bluetooth.');
-				app.display('Reconnected to Bluetooth.');
-				app.displayStatus('bt','Reconnected to Bluetooth.');
-			}
-		});
-		
 	},
 /*
 	set hostname and db name for remote couch DB
 */
 	setCouchServer: function(){
-		dBase.remoteServer = document.getElementById('couchServer').value;
+		dBase.remoteServer = app.formatIPAddress(document.getElementById('couchServer').value);
 		dBase.remoteDbName = document.getElementById('couchDbName').value;
 		alert('CouchDB settings saved.');
 		// save it in local storage for next time
 		localStorage.setItem('couchServerAddr',dBase.remoteServer);
 		localStorage.setItem('couchDbName',dBase.remoteDbName);
+		// in case there was a correction (trailing slash, etc), reset it in the input 
+		document.getElementById('couchServer').value = dBase.remoteServer;
 		// collapse ui element
 		//app.configBoxExpandCollapse($('#couchConfig .config_form'));
-		///console.log('local storage : ' + localStorage.getItem('couchServerAddr'));
+	},
+/*
+	Checks for trailing slash, http://, and port and adds them if needed.
+	pretty crude validation but fixes the most common errors
+*/
+	formatIPAddress: function(addr){
+		addr = addr.trim();
+		if (addr.substring(0,7) != 'http://' && addr.substring(0,8) != 'https://'){
+			addr = 'http://' + addr;
+		}
+		if (addr.substring(addr.length - 1) != '/'){
+			addr += '/';
+		}
+		// check for port number if there's not one, make it 5984
+		var pattern = /\:\d{4}\/$/;
+		var found = pattern.exec(addr);
+		if (!found){
+			// remove the slash and put it back
+			addr = addr.substring(0,addr.length - 1) + ':5984/';
+		}
+		return addr;
 	},
 
 /*
@@ -350,8 +360,13 @@ var app = {
 		if (!secs || secs < 15){ secs = 15;} // min 15 seconds
 		app.timeInterval = secs * 1000;
 		alert('Storage frequency set to '+ secs);
+		// change status message
+		app.displayStatus('freq', "Storing to device every " + secs + " seconds"); 
+		// save preference
+		localStorage.setItem('timeInterval',app.timeInterval);
 		//app.configBoxExpandCollapse($('#storageConfig .config_form'));
 	},
+
 /*
 	Wrapper around functions to process different types of NMEA sentences
 	(some code borrowed from https://github.com/jamesp/node-nmea)
@@ -430,10 +445,21 @@ var app = {
 		return new Date(Date.UTC(Y, M, D, h, m, s));
 	},
 /*
+	Get number of records on device in PouchDB
+*/
+	getRecordCount: function(){
+		dBase.numDocs(function(num_rows){
+			//alert('test' + num_rows);
+			app.totalDeviceRecords = num_rows;
+			// put it into an html el
+		});       
+		
+	},
+/*
     appends @error to the message div:
 */
 	showError: function(error) {
-		app.display(error);
+		//app.display(error);
 	},
 
 /*
@@ -459,12 +485,8 @@ var app = {
 	display @message to a particular element @div
 */
 	displayToEl: function(message, div){
-		var display = document.getElementById(div),// the message div
-		lineBreak = document.createElement("br"),     // a line break
-		textNode = document.createTextNode(message);     // create the label
-		
-		display.appendChild(lineBreak);						// add a line break
-		display.appendChild(textNode);	
+		jqdiv = $(document.getElementById(div));
+		jqdiv.append(message + '<br/>');
 	},
 /*
 	clear contents of a particular element @div
@@ -473,24 +495,25 @@ var app = {
 		var display = document.getElementById(div);
 		display.innerHTML = "";
 	},
+/*
+	sends messages to the the top status bar, 
+	which has sections for db and device messages
+	@status_type str 'db' or 'device' 
+	@msg str text to display
+*/
 	displayStatus: function(status_type,msg){
-		console.log('st ' + status_type);
 		var div = false;
 		switch(status_type){
 			case 'db':
 			case 'device':
-			case 'bt':
+			case 'freq':
+			//case 'bt':
 				div = status_type + '_status';
 		}
-		console.log('display '+div);
 		if (div){
-			//app.clearEl(div);
-			//app.displayToEl(div,msg);
 			$('#'+div).html(msg);
-			console.log($('#'+div));
 		}
 	},
-
 
 /* ===== UI elements ===== */
 /*
@@ -516,14 +539,13 @@ var app = {
 	a simpler progress wheel display
 */
 	changeConnectBtnState: function(){
-
 		// if progress is off, start it
 		if (app.couchConnInProgress === false){
 			app.couchConnInProgress = true;
 			// clear the Couch status box
 			$('#couchStatusMsg').html('');
 			var img = '<img src="img/blueloader32.gif" />';
-			var txt = 'Connecting to Couch ...';
+			var txt = 'Connecting to Couch';
 			$('#couchButton').html(img + ' ' + txt);
 		} else { // if it's on, stop it
 			app.couchConnInProgress = false; 

@@ -13,19 +13,25 @@
     </head>
     <body>
         <div class="app">
-            <div id="ui">
+            <div id="bluetooth_btn_wrapper">
                 <button id="connectButton" class="button btn btn-success btn-lg" >Connect</button>
                 <button id="scanButton" class="button btn btn-default btn-lg">Scan</button>
             </div>
-            <select id="devices" class="select form-control"></select>
+            <div class="dropdown_container">
+                <select id="devices" class="select form-control"></select>
+            </div>
             <div id="status">
-                <div id="device_status">&nbsp;</div>
-                <div id="db_status">&nbsp;</div>
-                <div id="bt_status">&nbsp;</div>
+                <div class="status_line" id="device_status">device&nbsp;</div>
+                <div class="status_line" id="freq_status">&nbsp;</div>
+                <div class="status_line" id="db_status">&nbsp;</div>
+                <!--<div class="status_line" id="bt_status">&nbsp;</div>-->
             </div>
             <div id="message">Hello.</div>
             <div class="header_bar"><h4>NMEA Log</h4></div>
-            <div id="nmea_viewer">NMEA</div>
+            <div id="nmea_viewer">
+                <div class="nmea_log" id="live_nmea">Live NMEA</div>
+                <div class="nmea_log" id="last_nmea">&nbsp;</div>    
+            </div>
 
         <div id = "couchConfig">
             <h3 class = "config_header"><span class="glyphicon glyphicon-chevron-right"></span>Configure CouchDB</h3>
@@ -53,6 +59,7 @@
         <script type="text/javascript" src="cordova.js"></script>
         <script type="text/javascript" src="js/lib/jquery-1.8.2.min.js"></script>
         <script type="text/javascript" src="js/lib/pouchdb-2.2.0.min.js"></script>
+        <script type="text/javascript" src="js/lib/moment.min.js"></script>
         <script type="text/javascript" src="js/dBase.js"></script>
         <script type="text/javascript" src="js/index.js"></script>
         <script type="text/javascript">

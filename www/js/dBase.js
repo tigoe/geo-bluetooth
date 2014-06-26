@@ -1,5 +1,7 @@
 var dBase = {
-	remoteServer: 'http://192.168.1.2:5984/', // "remote" here could be a localhost or the cloud; the couch db to sync with 
+	// "remote" here could be a localhost or the cloud; the couch db to sync with 
+	//remoteServer: 'http://192.168.1.2:5984/',
+	remoteServer: 'http://my.ip.addr:5984/',  //using dummy default as a format guide
 	remoteDbName: 'geo-bluetooth',
 	
 	init: function (dbname){ 
@@ -56,6 +58,7 @@ var dBase = {
 		// option for couchDB sync
 		var opts = { live: false, complete:function(err,res){
 			var result_msg = false;
+			var success = false;
 			if (err){
 				err_msg = '';
 				for (var e in err){
@@ -69,17 +72,23 @@ var dBase = {
 				result_msg += ' on server ' + dBase.remoteServer;
 				result_msg += ' Database response: ' + err.toString();
 				//alert('debug: couch error in couchReplicate');
-				app.display('debug: couch error in couchReplicate');
+				//app.display('debug: couch error in couchReplicate');
 			} else {
 				//alert('Successfully saved to CouchDB');
 				//app.showStatus('Successfully saved to CouchDB');
-				result_msg = 'Successfully saved to CouchDB'
-				
+				success = true;
+				result_msg = 'Successfully saved to CouchDB.';
 			}
-			callback(result_msg);
+			callback(result_msg,success);
 		}};
 		var fullRemotePath = this.remoteServer + this.remoteDbName; // TODO: correct for missing slash .. and http ... and port
 		this.db.replicate.to(fullRemotePath, opts);	
+	},
+	numDocs: function(callback){
+		// asks for doc info but does not include the documents themselves (compare to all() function above)
+		this.db.allDocs({}, function(err, doc) { 
+			callback(doc.total_rows);	
+		});
 	}
 
 };

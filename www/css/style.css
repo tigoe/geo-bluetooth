@@ -4,9 +4,24 @@
 }
 
 .select {
-	width: 90% !important;
+	/*width: 90% !important;*/
     margin: 2em auto;
     
+}
+#devices{
+	/*display:block;*/
+}
+#bluetooth_btn_wrapper{
+	display: block;
+	float: left;
+	clear: right;
+
+}
+.dropdown_container{
+	display: block;
+	float:left;
+	min-width: 30%;
+	margin-left: 1em;
 }
 #message {
 	border: 1px solid #ccc;
@@ -16,13 +31,25 @@
 	display: none;
 }
 #nmea_viewer{
-	height: 20em;
-	overflow: auto;
+	overflow: hidden;
 	margin: 0 1em;
 	padding: 1em;
 	/*border: 1px solid #ccc;*/
 	background-color: #333;
 	color: #ccc;
+	min-height: 24em;
+	height: 24em;
+}
+.nmea_log{
+	min-height: 10em;
+	overflow: auto;
+}
+#last_nmea{
+	/*border:1px solid #666;
+	padding: .5em;*/
+}
+#last_nmea p{ /* Label for "last record" section of nmea log viewer */
+	color: #39b3d7;
 }
 .header_bar{
 	background-color: #000;
@@ -57,13 +84,18 @@
 	/*margin: 0 1em;
 	background-color: #eff1f2;
 	*/
+	clear: both;
+	background-color: #eff1f2;
 	min-height: 3em;
 	margin: 0 1em;
+	padding: .3em 1em;
 	border: 1px solid #ccc;
-	padding: 1em;
+	
 }
-#device_status,#db_status,#bt_status{
-
+.status_line{
+	min-height: 1em;
+	/*border:1px solid #39b3d7;
+	border-collapse: collapse;*/
 }
 
 .config_header{
@@ -82,6 +114,8 @@
 	padding-right: .5em;
 	font-size: 75%;
 }
+
+
 
 /*
 #load_overlay{
