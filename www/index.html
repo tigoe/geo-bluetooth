@@ -21,10 +21,18 @@
                 <select id="devices" class="select form-control"></select>
             </div>
             <div id="status">
-                <div class="status_line" id="device_status">device&nbsp;</div>
-                <div class="status_line" id="freq_status">&nbsp;</div>
+                <div class="status_line" id="device_status">&nbsp;</div>
+                <div class="status_line" id="records_status">
+                    <span id="num_device_records">x</span> records on device. Storing to device every <span id="freq_secs">n</span> secs.<br/>
+                    <div id="no-history" style="display:none">No remote storage history available</div>
+                    <div id="history" style="display:none">
+                        <span id="num_new_records">x</span> new records stored to <span id="ip">x</span> at <span id="time_stored">x</span>
+                    </div>
+                    <!-- OR: No remote storage history -->
+                </div>
+
                 <div class="status_line" id="db_status">&nbsp;</div>
-                <!--<div class="status_line" id="bt_status">&nbsp;</div>-->
+                <!--<div class="status_line" id="storage_status">&nbsp;</div>-->
             </div>
             <div id="message">Hello.</div>
             <div class="header_bar"><h4>NMEA Log</h4></div>

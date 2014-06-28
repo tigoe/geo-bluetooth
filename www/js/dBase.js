@@ -17,7 +17,7 @@ var dBase = {
 		// response function
 		var responseHandler = function (err, result) {
 			if (!err) {
-				console.log('Successfully added a record!');
+				//console.log('Successfully added a record!');
 				callback(result);
 			} else {
 				console.log('could not add record');
@@ -74,12 +74,25 @@ var dBase = {
 				//alert('debug: couch error in couchReplicate');
 				//app.display('debug: couch error in couchReplicate');
 			} else {
+				/*
+				format of pouch response object
+				{
+				  "doc_write_failures": 0, 
+				  "docs_read": 2, 
+				  "docs_written": 2, 
+				  "end_time": "Fri May 16 2014 18:26:00 GMT-0700 (PDT)", 
+				  "errors": [], 
+				  "last_seq": 2, 
+				  "ok": true, 
+				  "start_time": "Fri May 16 2014 18:26:00 GMT-0700 (PDT)", 
+				  "status": "complete"
+				}*/
 				//alert('Successfully saved to CouchDB');
 				//app.showStatus('Successfully saved to CouchDB');
 				success = true;
 				result_msg = 'Successfully saved to CouchDB.';
 			}
-			callback(result_msg,success);
+			callback(result_msg,success,res.docs_written);
 		}};
 		var fullRemotePath = this.remoteServer + this.remoteDbName; // TODO: correct for missing slash .. and http ... and port
 		this.db.replicate.to(fullRemotePath, opts);	
@@ -87,7 +100,8 @@ var dBase = {
 	numDocs: function(callback){
 		// asks for doc info but does not include the documents themselves (compare to all() function above)
 		this.db.allDocs({}, function(err, doc) { 
-			callback(doc.total_rows);	
+			// send back number of rows
+			callback(doc.total_rows);
 		});
 	}
 

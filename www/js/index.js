@@ -9,16 +9,20 @@ var app = {
 	portOpen: false, // keep track of whether BT is connected
 	progressOverlayOn: false, //track when app is in waiting state with progress wheel
 	couchConnInProgress: false,
+	totalDeviceRecords: 0, // track num of pouch records on device
+	//info about last connection to couch
+	lastRemoteConnection: {
+		success: false,
+		datetime: false,
+		numRows: 0,
+		address: 0,
+		dbName: '',
+		lastSuccess: {} // in case this attempt failed, remember details of last successful one
+	}, 
 
 	// Application Constructor
 	initialize: function() {
 		this.bindEvents();
-
-		// DATABASE: new PouchDB instance
-		if (!this.pouchDBName){
-			this.pouchDBName = 'mypouchdb';
-		}
-		dBase.init(this.pouchDBName);
 
 	},
 	// Bind Event Listeners
@@ -41,6 +45,21 @@ var app = {
 	// The scope of 'this' is the event. In order to call the 'receivedEvent'
 	// function, we must explicity call 'app.receivedEvent(...);'
 	onDeviceReady: function() {
+		// bluetooth
+		app.checkBluetooth();
+
+		// DATABASE: new PouchDB instance
+		if (!this.pouchDBName){
+			this.pouchDBName = 'mypouchdb';
+		}
+		dBase.init(this.pouchDBName);
+		// how many records on the device right now?
+		app.getRecordCount(function(num_rows){
+			app.totalDeviceRecords = num_rows;
+			//app.displayStatus('storage',num_rows + ' Records on device');
+			app.displayStatus('num_device_records',num_rows);
+		}); 
+
 		// get saved settings, if there are any
 		if (localStorage.getItem('couchServerAddr')){
 			dBase.remoteServer = localStorage.getItem('couchServerAddr');
@@ -54,9 +73,16 @@ var app = {
 			app.timeInterval = localStorage.getItem('timeInterval');
 			document.getElementById('secondsInput').value = localStorage.getItem('timeInterval');
 		}
+		// any info about the last connection (attempt) to couch?	 
+		if (localStorage.getItem('lastRemoteConnection')){
+			app.lastRemoteConnection = JSON.parse(localStorage.getItem('lastRemoteConnection'));
+		}
+		
+		// show storage frequency settings
+		app.displayStatus('freq_secs',app.timeInterval/1000);
 
-		// bluetooth
-		app.checkBluetooth();
+		// display remote storage history
+		app.displayLastConnection();
 	},
     
 	// Check Bluetooth, list ports if enabled:
@@ -118,12 +144,9 @@ var app = {
 		// use the first item from the list as your address:
 		app.deviceAddress = devices.options[devices.selectedIndex].value;
 		app.deviceName = devices.options[devices.selectedIndex].innerHTML;
-		//app.clear();
-		//app.display(app.deviceAddress + " " + app.deviceName); 
 		app.displayStatus('device',app.deviceAddress + " " + app.deviceName); 
 	},
-
-        
+       
  /*
     Connects if not connected, and disconnects if connected:
 */
@@ -166,7 +189,8 @@ var app = {
 		var startTime = moment().format('HH:mm, MMM DD');
 
 		app.displayStatus('device',"Connected to <b>" + app.deviceName + "</b> at " + startTime);
-		app.displayStatus('freq', "Storing to device every " + secs + " seconds");
+		//app.displayStatus('freq', "Storing to device every " + secs + " seconds");
+		app.displayStatus('freq_secs', secs);
 		app.displayStatus('db',''); //clear db status message
 
 		app.portOpen = true;
@@ -286,8 +310,12 @@ var app = {
 			// record the new time stored
 			app.timeStored = new Date().getTime();
 			//console.log('saved to pouch db');	
-		});
-		
+			// update number of records on device
+			app.getRecordCount(function(num_rows){
+				app.totalDeviceRecords = num_rows;
+				app.displayStatus('num_device_records',num_rows);
+			});
+		});		
 	},
 /*
 	update pouchDB to remote couchDB
@@ -299,18 +327,31 @@ var app = {
 		// make sure there's a server address set
 		if (!dBase.remoteServer || dBase.remoteServer == 'http://my.ip.addr:5984/'){
 			alert('To connect to CouchDB, please set the server address.');
+			console.log('remote server: ' + dBase.remoteServer);
 		} else {
 			// save to couch
-			dBase.couchReplicate(function(alert_msg,success){ 
+			dBase.couchReplicate(function(alert_msg,success,recordsSaved){ 
 				app.changeConnectBtnState();
 				if (alert_msg){
-					// show in couch status area
+					// show in couch status area at bottom
 					$('#couchStatusMsg').html(alert_msg);
 
-					// if it's an error, show short version in top status bar.
-					if (!success){ alert_msg = "Could not connect to CouchDB."; } 
-					alert_msg += " Resumed device storage.";	
-					app.displayStatus('db',alert_msg);
+					// show shorter version of error msg in top status bar.
+					if (!success){ 
+						alert_msg = "Could not connect to CouchDB."; 
+					}
+					alert_msg += " Resumed device storage.";
+					app.displayStatus('db',alert_msg); //display to top status
+					// log connection attempt
+					app.logConnection({
+							success: success,
+							datetime: new Date(),
+							address: dBase.remoteServer,
+							dbName: dBase.remoteDbName,
+							numRows: recordsSaved // num rows saved to db
+						},function(){
+							app.displayLastConnection();
+						}); 
 				}
 			});
 		}
@@ -351,7 +392,51 @@ var app = {
 		}
 		return addr;
 	},
+/*
+	when there's a connection (attempt) to couch, save the info
+*/
+	logConnection: function(logObj,doStuff) {
+		if(logObj.success){
+			// save as most recent success
+			logObj.lastSuccess = logObj;
+		} 
+		// only overwrite some properties (ie, don't copy the whole obj)
+		app.lastRemoteConnection.success  = logObj.success;
+		app.lastRemoteConnection.datetime = logObj.datetime;
+		app.lastRemoteConnection.numRows  = logObj.numRows;
+		app.lastRemoteConnection.address  = logObj.address;
+		app.lastRemoteConnection.dbName   = logObj.dbName;
+		console.log('logConnection called');
+		console.log(logObj.success);
+		console.log(JSON.stringify(app.lastRemoteConnection));
+		
+		// serialize the whole thing and save it to local storage
+		localStorage.setItem('lastRemoteConnection',JSON.stringify(app.lastRemoteConnection));
+		// callback
+		doStuff();	
+	},
 
+	displayLastConnection: function() {
+		var logObj = false; // stays false if there's no sucess recorded at all
+		if (app.lastRemoteConnection.success){
+			logObj = app.lastRemoteConnection;
+		} else if (!app.lastRemoteConnection.success && app.lastRemoteConnection.lastSuccess){
+			// if the last connection attempt failed, but there's a record of last success
+			logObj = app.lastRemoteConnection.lastSuccess;
+		}
+		if (!logObj){ // if there is no record history
+			// show "no history" status, hide history status divs
+			$('#no-history').show();
+			$('#history').hide();
+		} else {
+			//display
+			$('#history').show();
+			$('#no-history').hide();
+			app.displayStatus('num_new_records',logObj.numRows);
+			app.displayStatus('ip',logObj.address);
+			app.displayStatus('time_stored',moment(logObj.datetime).format('HH:mm, MMM DD'));
+		}
+	},
 /*
 	set the number of seconds before each PouchDB store
 */
@@ -447,12 +532,12 @@ var app = {
 /*
 	Get number of records on device in PouchDB
 */
-	getRecordCount: function(){
+	getRecordCount: function(callback){
 		dBase.numDocs(function(num_rows){
-			//alert('test' + num_rows);
-			app.totalDeviceRecords = num_rows;
-			// put it into an html el
-		});       
+			//console.log("got number of pouch rows " + num_rows);
+			callback(num_rows);
+
+		});      
 		
 	},
 /*
@@ -498,20 +583,32 @@ var app = {
 /*
 	sends messages to the the top status bar, 
 	which has sections for db and device messages
-	@status_type str 'db' or 'device' 
-	@msg str text to display
+	@status_type str to identify div
+	@msg str to display
 */
 	displayStatus: function(status_type,msg){
 		var div = false;
 		switch(status_type){
+			// full status lines
 			case 'db':
 			case 'device':
-			case 'freq':
+			//case 'freq':
+			//case 'storage':
 			//case 'bt':
-				div = status_type + '_status';
+				//div = status_type + '_status';
+				div = '#'+status_type + '_status';
+				break;
+			// pieces of records status line:
+			case 'num_new_records':
+			case 'ip':
+			case 'time_stored':
+			case 'num_device_records':
+			case 'freq_secs':
+				div = '#records_status #' + status_type;
 		}
 		if (div){
-			$('#'+div).html(msg);
+			//$('#'+div).html(msg);
+			$(div).html(msg);
 		}
 	},
 
@@ -536,7 +633,7 @@ var app = {
 		form_el.siblings("h3.config_header span").toggleClass( "glyphicon-chevron-right glyphicon-chevron-down" );
 	},
 /*
-	a simpler progress wheel display
+	progress wheel display
 */
 	changeConnectBtnState: function(){
 		// if progress is off, start it

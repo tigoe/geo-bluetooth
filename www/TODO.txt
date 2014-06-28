@@ -11,14 +11,21 @@ x - RE-DO: progress wheel when connecting to couch -- don't take over screen
 x - show/hide config forms
 x - move nmea parse code out of openPort()
 x - clean up handling of messages in status bar, esp wrt showing that connection stopped b/c of DB
-? - should it reconnect to BT once couch sync is done? (Code to do that isn't working currently)
+x - After Couch save is done, start storing data to local again.
 x - give message when sentences are recorded to local (pouch, not couch) ?? eg, "Last recorded at 10:23"
-? - maybe instead of disconnecting from BT, just prevent saving to DB
-- (minor) collapse config form again on save <-- buggy. putting aside for now
+x - instead of disconnecting from BT, just prevent saving to DB
 x - fix db error msg
-? - use form tags so that "Go" button on keyboard will work (?? + make button submit type?)
+? - (low priority) use form tags so that "Go" button on keyboard will work (BUT without the button sending new request w/ "submit") 
 x - check/correct trailing slash on server IP (http check would be good too)
-- Show number of records on device and number that were stored in last save to Couch
+
+- Show number of records on device and number that were stored in last save to Couch: 
+	"Last saved to 123.123.42/dbname at 06/12/2014 12:22" 
+	"100 records on this device"
+	"30 records not yet saved to server" (and/or "70/100 records saved to server")
+  ** get number of records in CouchDB!****
+
+? - Pause/clear display ... did we decide against this in favor of also showing records as they are saved every n seconds?
+
 
 
 == extra: ==
