@@ -2,7 +2,7 @@ var dBase = {
 	// "remote" here could be a localhost or the cloud; the couch db to sync with 
 	//remoteServer: 'http://192.168.1.2:5984/',
 	remoteServer: 'http://my.ip.addr:5984/',  //using dummy default as a format guide
-	remoteDbName: 'geo-bluetooth',
+	remoteDbName: 'geo-bluetooth-raw',
 	
 	init: function (dbname){ 
 		this.db = new PouchDB(dbname);

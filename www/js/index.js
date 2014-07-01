@@ -1,8 +1,11 @@
 var app = {
 	deviceAddress: "AA:BB:CC:DD:EE:FF",  // get your mac address from bluetoothSerial.list
 	deviceName: "No Name",
-	pouchDBName: "mypouchgeo", // name of the database pouchDB uses locally on device (NOT remote couchDB)
+	pouchDBName: "mypouchgeoraw07011217", // name of the database pouchDB uses locally on device (NOT remote couchDB)
 	nmeaPacket: [], // group of nmea sentences, used for buffering	
+	nmeaRaw: '', // store unparsed sentences as one big string (alt use, instead of splitting into fields)
+	nmeaRawObj: {nmeaStr:'',nmeaArr:[]},
+	pouchRawNmeaId: {test: 'me'}, // for raw strings, there will be only one record in pouch
 	timeStored: new Date().getTime(), // track last save to PouchDB (milliseconds) 
 	timeInterval: 30 * 1000, // min time between each save to PouchDB (seconds to milliseconds)
 	//timeInterval: 30, //seconds
@@ -83,6 +86,9 @@ var app = {
 
 		// display remote storage history
 		app.displayLastConnection();
+
+		// for raw data storage
+		app.createRawNmeaObj();
 	},
     
 	// Check Bluetooth, list ports if enabled:
@@ -204,7 +210,9 @@ var app = {
 		// and display any new data that's come in since
 		// the last newline:
 		bluetoothSerial.subscribe('\n', function (data) {
-			app.handleNmeaData(data);
+			//app.handleNmeaData(data);
+			// for raw data version:
+			app.handleNmeaRawData(data);
 		});
 	},
 
@@ -317,6 +325,36 @@ var app = {
 			});
 		});		
 	},
+	createRawNmeaObj: function(callback){
+		dBase.add({},function(response){
+				app.pouchRawNmeaId.foo = 'bar';
+				app.pouchRawNmeaId.id  = response.id;
+				app.pouchRawNmeaId.rev = response.rev;
+				console.log("ADDED NEW nmea OBJ "+nmeaStr);
+				console.log(JSON.stringify(response));
+				console.log(JSON.stringify(app.pouchRawNmeaId));
+			});
+	},
+/*
+	store nmea sentences as is, without parsing, as a single doc 
+*/
+	handleNmeaRawData: function(nmeaStr) {
+		//console.log('pouch id' + JSON.stringify(app.pouchRawNmeaId));
+		if (app.pouchRawNmeaId.id){
+			app.nmeaRawObj.nmeaArr.push(nmeaStr);
+			if(new Date().getTime() > (app.timeStored + app.timeInterval) && !app.couchConnInProgress){	
+				var doc = new Blob(app.nmeaRawObj.nmeaArr);		
+				dBase.db.putAttachment(app.pouchRawNmeaId.id, 'nmeatext', app.pouchRawNmeaId.rev, doc, 'text/plain', function(err, res) {
+					console.log('put attachment');
+					//console.log(JSON.stringify(res));
+					app.timeStored = new Date().getTime();
+					app.pouchRawNmeaId.rev = res.rev;
+				});
+			}
+		}
+		$('#live_nmea').append(nmeaStr+'<br/>');
+		
+	},
 /*
 	update pouchDB to remote couchDB
 */
@@ -407,9 +445,9 @@ var app = {
 		app.lastRemoteConnection.numRows  = logObj.numRows;
 		app.lastRemoteConnection.address  = logObj.address;
 		app.lastRemoteConnection.dbName   = logObj.dbName;
-		console.log('logConnection called');
-		console.log(logObj.success);
-		console.log(JSON.stringify(app.lastRemoteConnection));
+		//console.log('logConnection called');
+		//console.log(logObj.success);
+		//console.log(JSON.stringify(app.lastRemoteConnection));
 		
 		// serialize the whole thing and save it to local storage
 		localStorage.setItem('lastRemoteConnection',JSON.stringify(app.lastRemoteConnection));
