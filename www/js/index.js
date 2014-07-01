@@ -342,6 +342,7 @@ var app = {
 					}
 					alert_msg += " Resumed device storage.";
 					app.displayStatus('db',alert_msg); //display to top status
+					// TODO: show total num of records in remote db -- use Pouch's count at the time of connection
 					// log connection attempt
 					app.logConnection({
 							success: success,

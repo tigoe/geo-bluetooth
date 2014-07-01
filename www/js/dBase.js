@@ -28,8 +28,7 @@ var dBase = {
 			this.db.bulkDocs(record, responseHandler);
 		} else {
 			this.db.post(record, responseHandler);
-		}
-		
+		}		
 	},
 	update: function(record,callback){
 		this.db.put(record, function (err, result) {
@@ -55,7 +54,7 @@ var dBase = {
 			return false;
 		}
 
-		// option for couchDB sync
+		// options for couchDB sync
 		var opts = { live: false, complete:function(err,res){
 			var result_msg = false;
 			var success = false;
@@ -87,8 +86,6 @@ var dBase = {
 				  "start_time": "Fri May 16 2014 18:26:00 GMT-0700 (PDT)", 
 				  "status": "complete"
 				}*/
-				//alert('Successfully saved to CouchDB');
-				//app.showStatus('Successfully saved to CouchDB');
 				success = true;
 				result_msg = 'Successfully saved to CouchDB.';
 			}

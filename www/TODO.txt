@@ -22,10 +22,13 @@ x - check/correct trailing slash on server IP (http check would be good too)
 	"Last saved to 123.123.42/dbname at 06/12/2014 12:22" 
 	"100 records on this device"
 	"30 records not yet saved to server" (and/or "70/100 records saved to server")
-  ** get number of records in CouchDB!****
+  ** show total number of records in CouchDB! (to last connected database & server) ****
 
 ? - Pause/clear display ... did we decide against this in favor of also showing records as they are saved every n seconds?
 
+todo notes, jun 28:
+- move all couch connection messages to bottom next to button? (ie, remove from top status?)
+- show total number of records in last connected remote database
 
 
 == extra: ==
