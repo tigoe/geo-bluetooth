@@ -38,4 +38,13 @@ todo notes, jun 28:
 other sentence types from the GLO, besides RMC and GSV:
 GGA, VTG, GSA
 
+== Raw Data version ==
+Stores to a text file as an attachment to a Couch/Pouch record
+Questions:
+Does each save to Couch clear out the record entirely?
+	- could store a new document each time saved to couch, and:
+		* keep all the geo data on the device, so new versions of the txt file exist in different records, but the file gets bigger on each save. 
+		OR
+		* clear out all the geo data after each couch save, so that the data in the NEXT couch save is new.
+
 

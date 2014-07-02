@@ -1,11 +1,17 @@
 var app = {
 	deviceAddress: "AA:BB:CC:DD:EE:FF",  // get your mac address from bluetoothSerial.list
 	deviceName: "No Name",
-	pouchDBName: "mypouchgeoraw07011217", // name of the database pouchDB uses locally on device (NOT remote couchDB)
-	nmeaPacket: [], // group of nmea sentences, used for buffering	
-	nmeaRaw: '', // store unparsed sentences as one big string (alt use, instead of splitting into fields)
+	pouchDBName: "mypouchgeoraw0701-1110p", // name of the database pouchDB uses locally on device (NOT remote couchDB)
+	nmeaPacket: [], // group of nmea sentences, used for buffering
+	usingRaw: true,	
+	nmeaRawArr: [],
+	/*nmeaRaw: '', // store unparsed sentences as one big string (alt use, instead of splitting into fields)
 	nmeaRawObj: {nmeaStr:'',nmeaArr:[]},
-	pouchRawNmeaId: {test: 'me'}, // for raw strings, there will be only one record in pouch
+	pouchRawNmeaObj: {id: 0, rev: 0}, // for raw strings, there will be only one record in pouch
+	pouchObjStarted: false, // flags to handle populating (only one!) pouch obj for raw data
+	*/
+	pouchObjCreated: false,
+	nmeaFirstSentenceType: '', // for raw data, don't assume RMC -- just get the first type that comes thru
 	timeStored: new Date().getTime(), // track last save to PouchDB (milliseconds) 
 	timeInterval: 30 * 1000, // min time between each save to PouchDB (seconds to milliseconds)
 	//timeInterval: 30, //seconds
@@ -88,7 +94,7 @@ var app = {
 		app.displayLastConnection();
 
 		// for raw data storage
-		app.createRawNmeaObj();
+		//app.createRawNmeaObj();
 	},
     
 	// Check Bluetooth, list ports if enabled:
@@ -325,40 +331,145 @@ var app = {
 			});
 		});		
 	},
-	createRawNmeaObj: function(callback){
+	/*createRawNmeaObj: function(callback){	
 		dBase.add({},function(response){
-				app.pouchRawNmeaId.foo = 'bar';
-				app.pouchRawNmeaId.id  = response.id;
-				app.pouchRawNmeaId.rev = response.rev;
+				app.pouchRawNmeaObj.foo = 'bar';
+				app.pouchRawNmeaObj.id  = response.id;
+				app.pouchRawNmeaObj.rev = response.rev;
 				console.log("ADDED NEW nmea OBJ "+nmeaStr);
 				console.log(JSON.stringify(response));
-				console.log(JSON.stringify(app.pouchRawNmeaId));
+				console.log(JSON.stringify(app.pouchRawNmeaObj));
 			});
-	},
+	},*/
 /*
 	store nmea sentences as is, without parsing, as a single doc 
 */
 	handleNmeaRawData: function(nmeaStr) {
-		//console.log('pouch id' + JSON.stringify(app.pouchRawNmeaId));
-		if (app.pouchRawNmeaId.id){
-			app.nmeaRawObj.nmeaArr.push(nmeaStr);
-			if(new Date().getTime() > (app.timeStored + app.timeInterval) && !app.couchConnInProgress){	
-				var doc = new Blob(app.nmeaRawObj.nmeaArr);		
-				dBase.db.putAttachment(app.pouchRawNmeaId.id, 'nmeatext', app.pouchRawNmeaId.rev, doc, 'text/plain', function(err, res) {
+		//app.nmeaPacket.push(nmeaStr);
+		var firstField = nmeaStr.split(',')[0]; //  format $GPXYZ
+		if (!app.nmeaFirstSentenceType){
+			app.nmeaFirstSentenceType = firstField;
+		}
+		if (app.nmeaFirstSentenceType == firstField){
+			//console.log("~~~~FULL CIRCLE ~~~~~~");
+			// time to save & start a new packet ... if enough time has passed
+			if(new Date().getTime() > (app.timeStored + app.timeInterval) && !app.couchConnInProgress && app.nmeaPacket.length > 0){
+				// store everything from the packet into the master array of sentences
+				app.nmeaRawArr.push.apply(app.nmeaRawArr,app.nmeaPacket);
+				//console.log("PACKET___@__@_@_");
+				//console.log(JSON.stringify(app.nmeaPacket));
+				
+				
+				console.log('!!!!! MASTER ARR has ' + app.nmeaRawArr.length + ' elements');
+				console.log(JSON.stringify(app.nmeaRawArr));
+				app.timeStored = new Date().getTime();
+			} 
+			// new packet
+			app.nmeaPacket = [];
+			// clear screen
+			app.clearEl('live_nmea');
+		} 
+		// add to packet
+		app.nmeaPacket.push(nmeaStr);
+		app.displayToEl(nmeaStr,'live_nmea');
+		
+
+		// if pouch obj population has started
+		/*if (!app.pouchObjStarted){
+			app.pouchObjStarted = true;
+			//do db stuff. on complete, set created flag to true
+			dBase.add({},function(response){
+				//app.pouchRawNmeaObj.foo = 'bar';
+				app.pouchRawNmeaObj.id  = response.id;
+				app.pouchRawNmeaObj.rev = response.rev;
+				app.pouchObjCreated = true;
+				// debug
+				console.log("ADDED NEW nmea OBJ "+nmeaStr);
+				console.log(JSON.stringify(response));
+				console.log(JSON.stringify(app.pouchRawNmeaObj));
+			});
+			
+		} else {*/
+			// ok, it has started. has it finished? is the pouch obj ready?
+			/*if (app.pouchObjCreated && app.pouchRawNmeaObj.id){
+				// make packets using fields available
+				// so that groups of lines are stored in the raw string together, instead of just at time intervals
+				var firstField = nmeaStr.split(',')[0]; //  format $GPXYZ
+				if (!app.nmeaFirstSentenceType){
+					app.nmeaFirstSentenceType = firstField;
+				}
+				if (app.nmeaFirstSentenceType == firstField){
+					// this packet is done. save it. 
+					var timeUp = new Date().getTime() > (app.timeStored + app.timeInterval);
+					// only if packet is not empty & enough time has passed and couch isn't connecting
+					if (app.nmeaPacket.length > 0 && timeUp && !app.couchConnInProgress){
+						// first push all the packet elements to the master raw array 
+						Array.prototype.push.apply(app.nmeaRawObj.nmeaArr,app.nmeaPacket);
+						console.log("_____PACKET PUSH _______________**PP**");
+						// update the timestamp on the record
+						// dBase.db.put({
+						//   datetime: new Date()
+						// }, app.pouchRawNmeaObj.id).then(function(response) { 
+						// 	app.pouchRawNmeaObj.rev = response.rev;
+						// 	// add the attachment
+						// 	var doc = new Blob(app.nmeaRawObj.nmeaArr);
+						// 	// add attachment to our one db doc
+						// 	dBase.db.putAttachment(app.pouchRawNmeaObj.id, 'nmeatext', app.pouchRawNmeaObj.rev, doc, 'text/plain', function(err, res) {
+						// 		console.log('put attachment');
+						// 		//console.log(JSON.stringify(res));
+						// 		app.timeStored = new Date().getTime();
+						// 		// update the revision number
+						// 		app.pouchRawNmeaObj.rev = res.rev;
+						// 	});
+						});	
+					}
+
+					// Begin a new packet 
+					app.nmeaPacket = [];
+					// clear screen
+					app.clearEl('live_nmea');
+				}
+				// add this nmea string to packet array
+				app.nmeaPacket.push(nmeaStr);	
+			}*/ 
+		//}
+
+		//$('#live_nmea').append(nmeaStr+'<br/>');
+		//app.displayToEl(data,'live_nmea');
+		
+	},
+	createAttachmentRecord:function(){
+		console.log('CALL!  createAttachmentRecord');
+		console.log('pouchObjCreated bool = ' + app.pouchObjCreated);
+		// create a new record, with a timestamp field
+		dBase.add({datetime:new Date()},function(response){
+			// add an attachment to the new record
+			if (response.ok === true){		
+				var doc = new Blob(app.nmeaRawArr);
+				// add attachment to the record just created
+				dBase.db.putAttachment(response.id, 'nmeatext', response.rev, doc, 'text/plain', function(err, res) {
 					console.log('put attachment');
 					//console.log(JSON.stringify(res));
 					app.timeStored = new Date().getTime();
-					app.pouchRawNmeaId.rev = res.rev;
+					app.pouchObjCreated = true;
+					app.saveToCouch();
 				});
+			} else {
+				console.log('problem ');
 			}
-		}
-		$('#live_nmea').append(nmeaStr+'<br/>');
-		
+				
+		});
 	},
 /*
 	update pouchDB to remote couchDB
 */
 	saveToCouch: function(){
+		// for raw data (attachment), create pouch record
+		if (app.usingRaw && !app.pouchObjCreated){
+			app.createAttachmentRecord();
+			return; 
+		}
+		console.log('hello from saveToCouch. /// pouchObjCreated bool = ' + app.pouchObjCreated);
 		app.changeConnectBtnState(); // change to progress button - also sets app.couchConnInProgress prop
 		app.displayStatus('db','Connecting to CouchDB. Paused device storage.');
 
@@ -390,6 +501,8 @@ var app = {
 							numRows: recordsSaved // num rows saved to db
 						},function(){
 							app.displayLastConnection();
+							// for the raw data version: reset the raw data obj flags
+							app.pouchObjCreated = false;
 						}); 
 				}
 			});
