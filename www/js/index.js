@@ -5,16 +5,10 @@ var app = {
 	nmeaPacket: [], // group of nmea sentences, used for buffering
 	usingRaw: true,	
 	nmeaRawArr: [],
-	/*nmeaRaw: '', // store unparsed sentences as one big string (alt use, instead of splitting into fields)
-	nmeaRawObj: {nmeaStr:'',nmeaArr:[]},
-	pouchRawNmeaObj: {id: 0, rev: 0}, // for raw strings, there will be only one record in pouch
-	pouchObjStarted: false, // flags to handle populating (only one!) pouch obj for raw data
-	*/
 	pouchObjCreated: false,
 	nmeaFirstSentenceType: '', // for raw data, don't assume RMC -- just get the first type that comes thru
 	timeStored: new Date().getTime(), // track last save to PouchDB (milliseconds) 
 	timeInterval: 30 * 1000, // min time between each save to PouchDB (seconds to milliseconds)
-	//timeInterval: 30, //seconds
 	portOpen: false, // keep track of whether BT is connected
 	progressOverlayOn: false, //track when app is in waiting state with progress wheel
 	couchConnInProgress: false,
@@ -331,16 +325,6 @@ var app = {
 			});
 		});		
 	},
-	/*createRawNmeaObj: function(callback){	
-		dBase.add({},function(response){
-				app.pouchRawNmeaObj.foo = 'bar';
-				app.pouchRawNmeaObj.id  = response.id;
-				app.pouchRawNmeaObj.rev = response.rev;
-				console.log("ADDED NEW nmea OBJ "+nmeaStr);
-				console.log(JSON.stringify(response));
-				console.log(JSON.stringify(app.pouchRawNmeaObj));
-			});
-	},*/
 /*
 	store nmea sentences as is, without parsing, as a single doc 
 */
@@ -372,70 +356,6 @@ var app = {
 		// add to packet
 		app.nmeaPacket.push(nmeaStr);
 		app.displayToEl(nmeaStr,'live_nmea');
-		
-
-		// if pouch obj population has started
-		/*if (!app.pouchObjStarted){
-			app.pouchObjStarted = true;
-			//do db stuff. on complete, set created flag to true
-			dBase.add({},function(response){
-				//app.pouchRawNmeaObj.foo = 'bar';
-				app.pouchRawNmeaObj.id  = response.id;
-				app.pouchRawNmeaObj.rev = response.rev;
-				app.pouchObjCreated = true;
-				// debug
-				console.log("ADDED NEW nmea OBJ "+nmeaStr);
-				console.log(JSON.stringify(response));
-				console.log(JSON.stringify(app.pouchRawNmeaObj));
-			});
-			
-		} else {*/
-			// ok, it has started. has it finished? is the pouch obj ready?
-			/*if (app.pouchObjCreated && app.pouchRawNmeaObj.id){
-				// make packets using fields available
-				// so that groups of lines are stored in the raw string together, instead of just at time intervals
-				var firstField = nmeaStr.split(',')[0]; //  format $GPXYZ
-				if (!app.nmeaFirstSentenceType){
-					app.nmeaFirstSentenceType = firstField;
-				}
-				if (app.nmeaFirstSentenceType == firstField){
-					// this packet is done. save it. 
-					var timeUp = new Date().getTime() > (app.timeStored + app.timeInterval);
-					// only if packet is not empty & enough time has passed and couch isn't connecting
-					if (app.nmeaPacket.length > 0 && timeUp && !app.couchConnInProgress){
-						// first push all the packet elements to the master raw array 
-						Array.prototype.push.apply(app.nmeaRawObj.nmeaArr,app.nmeaPacket);
-						console.log("_____PACKET PUSH _______________**PP**");
-						// update the timestamp on the record
-						// dBase.db.put({
-						//   datetime: new Date()
-						// }, app.pouchRawNmeaObj.id).then(function(response) { 
-						// 	app.pouchRawNmeaObj.rev = response.rev;
-						// 	// add the attachment
-						// 	var doc = new Blob(app.nmeaRawObj.nmeaArr);
-						// 	// add attachment to our one db doc
-						// 	dBase.db.putAttachment(app.pouchRawNmeaObj.id, 'nmeatext', app.pouchRawNmeaObj.rev, doc, 'text/plain', function(err, res) {
-						// 		console.log('put attachment');
-						// 		//console.log(JSON.stringify(res));
-						// 		app.timeStored = new Date().getTime();
-						// 		// update the revision number
-						// 		app.pouchRawNmeaObj.rev = res.rev;
-						// 	});
-						});	
-					}
-
-					// Begin a new packet 
-					app.nmeaPacket = [];
-					// clear screen
-					app.clearEl('live_nmea');
-				}
-				// add this nmea string to packet array
-				app.nmeaPacket.push(nmeaStr);	
-			}*/ 
-		//}
-
-		//$('#live_nmea').append(nmeaStr+'<br/>');
-		//app.displayToEl(data,'live_nmea');
 		
 	},
 	createAttachmentRecord:function(){
