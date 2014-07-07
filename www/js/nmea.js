@@ -65,6 +65,27 @@ var nmea = {
 				satellites: sats,
 				checksum: checksum
 			};
+		},
+		gga: function(nmeaArr){
+			dt = nmea.convertGPSDateTime(false,nmeaArr[1]); //human-readable datetime
+			var FIX_TYPE = ['none', 'fix', 'delta'];
+			return {
+				sentenceType: nmeaArr[0],
+				datetime: dt,
+				lat: nmeaArr[2],
+				latPole: nmeaArr[3],
+				lon: nmeaArr[4],
+				lonPole: nmeaArr[5],
+				fixType: FIX_TYPE[nmeaArr[6]],
+				numSat: nmeaArr[7],
+				horDilution: nmeaArr[8],
+				alt: nmeaArr[9],
+				altUnit: nmeaArr[10],
+				geoidalSep: nmeaArr[11],
+				geoidalSepUnit: nmeaArr[12],
+				differentialAge: nmeaArr[13],
+				differentialRefStn: nmeaArr[14]
+			};
 		}
 	},
 	sentenceToObj: function(nmeaStr){
@@ -97,24 +118,36 @@ var nmea = {
 	@utime in format hhmmss.ss, example: 180827.0 <-- 18:08:27.0
 	*/
 	convertGPSDateTime: function(udate, utime) {
+		// if the date or time is not given, use today
 		// numbers must be strings first in order to use slice()
-		udate = udate.toString();
-		utime = utime.toString();
-		var h = parseInt(utime.slice(0, 2), 10);
-		var m = parseInt(utime.slice(2, 4), 10);
-		var s = parseInt(utime.slice(4, 6), 10);
-		var D = parseInt(udate.slice(0, 2), 10);
-		var M = parseInt(udate.slice(2, 4), 10);
-		var Y = parseInt(udate.slice(4, 6), 10);
-
-		// hack : GPRMC date doesn't specify century. GPS came out in 1973
-		// so if year is less than 73 it's 2000, otherwise 1900
-		if (Y < 73) {
-			Y = Y + 2000;
+		var D, M, Y, h, m, s;
+		if (!udate){
+			dt = new Date();
+			D = this.zeroPad(dt.getDate());
+			M = this.zeroPad(dt.getMonth());
+			Y = dt.getFullYear();
 		} else {
-			Y = Y + 1900;
+			udate = udate.toString();
+			D = parseInt(udate.slice(0, 2), 10);
+			M = parseInt(udate.slice(2, 4), 10);
+			Y = parseInt(udate.slice(4, 6), 10) + 2000;
 		}
+		if (!utime){
+			dt = new Date();
+			h = this.zeroPad(dt.getHours());
+			m = this.zeroPad(dt.getMinutes());
+			s = this.zeroPad(dt.getSeconds());
+		} else {
+			utime = utime.toString();
+			h = parseInt(utime.slice(0, 2), 10);
+			m = parseInt(utime.slice(2, 4), 10);
+			s = parseInt(utime.slice(4, 6), 10);
+		}
+		
 		return new Date(Date.UTC(Y, M, D, h, m, s));
+	},
+	zeroPad: function(num){
+		return (num < 10) ? String('0') + num : num; 
 	}
 
 };

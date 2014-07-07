@@ -101,18 +101,37 @@ var dBase = {
 			callback(doc.total_rows);
 		});
 	},
-	// add a text attachment to an exisiting doc, with string data in an array
-	attachToDoc: function(doc,dataArr,fieldName){
-		if (!fieldName){fieldName = 'text';}
-		var txtdoc = new Blob(app.nmeaRawArr);
-		// returning promise object
-		return dBase.db.putAttachment(
-			doc.id, 
-			fieldName, 
-			doc.rev, 
-			txtdoc, 
-			'text/plain'
-			);
+	/* 
+	Add a text attachment to an exisiting doc, or create a new doc
+	@doc 	 	object w the id and rev # of doc to attach to OR false to create a new doc
+	@dataArr 	array of strings that will compose the text file
+	@fieldName 	name of the property in the db doc that contains the attachment
+	*/
+	attachTxtFile: function(doc,dataArr,fieldName){
+		// function to execute the attachment
+		var attach = function(obj,arr,fname){
+			if (!fname){fname = 'text';}
+			// create the file
+			var txtdoc = new Blob(arr);
+			// return promise
+			return dBase.db.putAttachment( 
+				obj.id, 
+				fname, 
+				obj.rev, 
+				txtdoc, 
+				'text/plain'
+				);
+		};
+		// if no doc provided, make a new one.
+		if (doc === false){
+			var newdoc = {datetime:new Date()}; // empty except for timestamp
+			this.db.post(newdoc).then(function(response){
+				attach(response,dataArr,fieldName);
+			});
+		} else {
+			attach(doc,dataArr,fieldName);
+		}
+		
 	}
 
 };
