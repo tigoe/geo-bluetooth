@@ -100,6 +100,19 @@ var dBase = {
 			// send back number of rows
 			callback(doc.total_rows);
 		});
+	},
+	// add a text attachment to an exisiting doc, with string data in an array
+	attachToDoc: function(doc,dataArr,fieldName){
+		if (!fieldName){fieldName = 'text';}
+		var txtdoc = new Blob(app.nmeaRawArr);
+		// returning promise object
+		return dBase.db.putAttachment(
+			doc.id, 
+			fieldName, 
+			doc.rev, 
+			txtdoc, 
+			'text/plain'
+			);
 	}
 
 };

@@ -10,8 +10,7 @@ var app = {
 	timeStored: new Date().getTime(), // track last save to PouchDB (milliseconds) 
 	timeInterval: 30 * 1000, // min time between each save to PouchDB (seconds to milliseconds)
 	portOpen: false, // keep track of whether BT is connected
-	progressOverlayOn: false, //track when app is in waiting state with progress wheel
-	couchConnInProgress: false,
+	couchConnInProgress: false, //track wheter a connection to remote db is in progress
 	totalDeviceRecords: 0, // track num of pouch records on device
 	//info about last connection to couch
 	lastRemoteConnection: {
@@ -41,21 +40,26 @@ var app = {
 		//couchButton.addEventListener('click', app.saveToCouch, false); // 'click' evt for browser debugging
 		configButton.addEventListener('touchend', app.setCouchServer, false);
 		secondsButton.addEventListener('touchend', app.setBufferInterval, false);
-		$(".config_header").click(app.toggleConfigSettings);
+		//$(".config_header").click(app.toggleConfigSettings);
+		$(".config_header").bind('touchend',app.toggleConfigSettings);
 	},
 	// deviceready Event Handler
 	//
 	// The scope of 'this' is the event. In order to call the 'receivedEvent'
 	// function, we must explicity call 'app.receivedEvent(...);'
 	onDeviceReady: function() {
+		// get saved settings from previous run
+		app.getStoredSettings();
+
 		// bluetooth
 		app.checkBluetooth();
 
 		// DATABASE: new PouchDB instance
 		if (!this.pouchDBName){
-			this.pouchDBName = 'mypouchdb';
+			this.pouchDBName = 'mypouchdb123';
 		}
 		dBase.init(this.pouchDBName);
+
 		// how many records on the device right now?
 		app.getRecordCount(function(num_rows){
 			app.totalDeviceRecords = num_rows;
@@ -63,7 +67,17 @@ var app = {
 			app.displayStatus('num_device_records',num_rows);
 		}); 
 
-		// get saved settings, if there are any
+		
+		// show storage frequency settings
+		app.displayStatus('freq_secs',app.timeInterval/1000);
+
+		// display remote storage history
+		app.displayLastConnection();
+	},
+/*
+	pull up saved settings from local storage
+*/
+	getStoredSettings: function(){
 		if (localStorage.getItem('couchServerAddr')){
 			dBase.remoteServer = localStorage.getItem('couchServerAddr');
 			document.getElementById('couchServer').value = localStorage.getItem('couchServerAddr');
@@ -80,15 +94,6 @@ var app = {
 		if (localStorage.getItem('lastRemoteConnection')){
 			app.lastRemoteConnection = JSON.parse(localStorage.getItem('lastRemoteConnection'));
 		}
-		
-		// show storage frequency settings
-		app.displayStatus('freq_secs',app.timeInterval/1000);
-
-		// display remote storage history
-		app.displayLastConnection();
-
-		// for raw data storage
-		//app.createRawNmeaObj();
 	},
     
 	// Check Bluetooth, list ports if enabled:
@@ -210,9 +215,9 @@ var app = {
 		// and display any new data that's come in since
 		// the last newline:
 		bluetoothSerial.subscribe('\n', function (data) {
-			//app.handleNmeaData(data);
+			app.handleNmeaData(data);
 			// for raw data version:
-			app.handleNmeaRawData(data);
+			//app.handleNmeaRawData(data);
 		});
 	},
 
@@ -242,122 +247,54 @@ var app = {
 	take the data from serial listener, then parse and store it
 */
 	handleNmeaData: function(data){
-		var firstField = data.split(',')[0]; // usu. in format $GPXYZ
-		if (firstField === '$GPRMC') { //assume RMC is the beginning of a packet
-			// Save the stuff from the last packet
-			//  ... but only if it has been more than n seconds since the last db store
-			//  ... AND only if we're not connecting to couch right now
-			//  ... AND if there's something in the packet array to be stored
-			if(new Date().getTime() > (app.timeStored + app.timeInterval) && !app.couchConnInProgress && app.nmeaPacket.length > 0){
-				// (now setting the new timeStored in the db add() callback, not here)
-				app.storeNmeaPacket(app.nmeaPacket);
-			} 
+		var sentenceType = data.split(',')[0]; // eg, $GPXYZ
+		// use the first sentence we see as the base, to know when it's made a round, and to make a new packet
+		if (!app.nmeaFirstSentenceType){
+			app.nmeaFirstSentenceType = sentenceType;
+		}
+		// if it has made its full round of sentences, this is the end of a packet, time to store (or discard)
+		if (app.nmeaFirstSentenceType == sentenceType && app.nmeaPacket.length > 0){
+			// has enough time elapsed since last store? 
+			if(new Date().getTime() > (app.timeStored + app.timeInterval) && !app.couchConnInProgress){
+				// parse the sentences, get back objects
+				var packetObjs = nmea.parse(app.nmeaPacket);
+				// store a string version for display later
+				var sentences = app.nmeaPacket.join('<br/>');
+				// for raw text:
+				// store everything from the packet into the master array of sentences
+				app.nmeaRawArr.push.apply(app.nmeaRawArr,app.nmeaPacket);
+
+				// store array of objects to Pouch
+				dBase.add(packetObjs,function(results){
+					// record the new time stored
+					app.timeStored = new Date().getTime();
+					
+					// feedback re: storage:
+					var fdate = moment(new Date(app.timeStored)).format('HH:mm:ss');
+					var display_str = '<p>NMEA record saved at ' + fdate + '</p>' ;
+					display_str += sentences;
+					// display time stored and sentences stored
+					app.clearEl('last_nmea');
+					app.displayToEl(display_str,'last_nmea');
+					
+					// update number of records on device & display
+					app.getRecordCount(function(num_rows){
+						app.totalDeviceRecords = num_rows;
+						app.displayStatus('num_device_records',num_rows);
+					});
+				});
+			}
 			// Begin a new packet 
 			app.nmeaPacket = [];
 			// clear screen
-			app.clearEl('live_nmea');
-		} 
-		// if you get an NMEA sentence, beginning with $ :
-		if (firstField.substring(0,1) === '$') {	
-			// save it to the packet array
-			// (store just sentence string for now, not object) 
-			app.nmeaPacket.push(data); 
-			app.displayToEl(data,'live_nmea');
+			app.clearEl('live_nmea'); 
 		}
+		// add the sentence to the packet array
+		app.nmeaPacket.push(data); 
+		// Show the current sentence 
+		app.displayToEl(data,'live_nmea');
 	},
-/*
-	converts an NMEA sentence into an object for the datastore
-*/
-	parseNmeaToObj: function(nmeaStr){
-		// example sentence string: $GPRMC,180826.9,V,4043.79444,N,07359.60944,W,,,160614,013.0,W,N*19
-		// make it an array:
-		nmeaArr = nmeaStr.split(",");
-		
-		// find the type
-		typeProp = nmeaArr[0].slice(-3).toLowerCase(); //eg: rmc
-		// process the sentence if the type is in the nmeaDecode object
-		if(typeProp in app.nmeaDecode){
-			nmeaObj = app.nmeaDecode[typeProp](nmeaArr);
-		} else {
-			nmeaObj = {};
-			//add the sentence type as a named field
-			nmeaObj.sentenceType = nmeaArr[0];
-			// everything else is a numeric field
-			for (var i=0; i < nmeaArr.length; i++){
-				nmeaObj[i] = nmeaArr[i]; 
-			}
-		}
-		// store the whole sentence, regardless of type
-		nmeaObj.nmeaSentence = nmeaStr;		
-		return nmeaObj;
-	},
-/*
-	store the array of NMEA sentence objects to Pouch
-	@packetArr is an array of *strings* that get translated to objects
-*/	
-	storeNmeaPacket: function(packetArr){
-		var d = new Date(app.timeStored);
-		m = String(d.getMinutes());
-		m = (m < 10) ? String('0') + m : m; //zero pad for nums < 10
-		s = String(d.getSeconds());
-		s = (s < 10) ? String('0') + s : s; //zero pad
-		var fdate = d.getHours() + ':'+ m + ':' + s;
-		var display_str = '<p>NMEA record saved at ' + fdate + '</p>' ;
 
-		// walk thru array & convert each NMEA string to object 
-		for (var i in packetArr){
-			display_str += packetArr[i] + '<br/>'; // append display str
-			packetArr[i] = app.parseNmeaToObj(packetArr[i]);
-		}
-		// display time stored and sentences stored
-		app.clearEl('last_nmea');
-		app.displayToEl(display_str,'last_nmea');
-
-		// send all records in array in bulk
-		dBase.add(packetArr,function(results){
-			// record the new time stored
-			app.timeStored = new Date().getTime();
-			//console.log('saved to pouch db');	
-			// update number of records on device
-			app.getRecordCount(function(num_rows){
-				app.totalDeviceRecords = num_rows;
-				app.displayStatus('num_device_records',num_rows);
-			});
-		});		
-	},
-/*
-	store nmea sentences as is, without parsing, as a single doc 
-*/
-	handleNmeaRawData: function(nmeaStr) {
-		//app.nmeaPacket.push(nmeaStr);
-		var firstField = nmeaStr.split(',')[0]; //  format $GPXYZ
-		if (!app.nmeaFirstSentenceType){
-			app.nmeaFirstSentenceType = firstField;
-		}
-		if (app.nmeaFirstSentenceType == firstField){
-			//console.log("~~~~FULL CIRCLE ~~~~~~");
-			// time to save & start a new packet ... if enough time has passed
-			if(new Date().getTime() > (app.timeStored + app.timeInterval) && !app.couchConnInProgress && app.nmeaPacket.length > 0){
-				// store everything from the packet into the master array of sentences
-				app.nmeaRawArr.push.apply(app.nmeaRawArr,app.nmeaPacket);
-				//console.log("PACKET___@__@_@_");
-				//console.log(JSON.stringify(app.nmeaPacket));
-				
-				
-				console.log('!!!!! MASTER ARR has ' + app.nmeaRawArr.length + ' elements');
-				console.log(JSON.stringify(app.nmeaRawArr));
-				app.timeStored = new Date().getTime();
-			} 
-			// new packet
-			app.nmeaPacket = [];
-			// clear screen
-			app.clearEl('live_nmea');
-		} 
-		// add to packet
-		app.nmeaPacket.push(nmeaStr);
-		app.displayToEl(nmeaStr,'live_nmea');
-		
-	},
 	createAttachmentRecord:function(){
 		console.log('CALL!  createAttachmentRecord');
 		console.log('pouchObjCreated bool = ' + app.pouchObjCreated);
@@ -370,7 +307,7 @@ var app = {
 				dBase.db.putAttachment(response.id, 'nmeatext', response.rev, doc, 'text/plain', function(err, res) {
 					console.log('put attachment');
 					//console.log(JSON.stringify(res));
-					app.timeStored = new Date().getTime();
+					//app.timeStored = new Date().getTime();
 					app.pouchObjCreated = true;
 					app.saveToCouch();
 				});
@@ -384,7 +321,7 @@ var app = {
 	update pouchDB to remote couchDB
 */
 	saveToCouch: function(){
-		// for raw data (attachment), create pouch record
+		// for raw data (attachment), create pouch record w/ attachment
 		if (app.usingRaw && !app.pouchObjCreated){
 			app.createAttachmentRecord();
 			return; 
@@ -396,7 +333,7 @@ var app = {
 		// make sure there's a server address set
 		if (!dBase.remoteServer || dBase.remoteServer == 'http://my.ip.addr:5984/'){
 			alert('To connect to CouchDB, please set the server address.');
-			console.log('remote server: ' + dBase.remoteServer);
+			//console.log('remote server: ' + dBase.remoteServer);
 		} else {
 			// save to couch
 			dBase.couchReplicate(function(alert_msg,success,recordsSaved){ 
@@ -525,83 +462,6 @@ var app = {
 	},
 
 /*
-	Wrapper around functions to process different types of NMEA sentences
-	(some code borrowed from https://github.com/jamesp/node-nmea)
-*/
-	nmeaDecode: {
-		rmc: function(nmeaArr){
-			dt = app.parseGPSDateTime(nmeaArr[9],nmeaArr[1]); //human-readable datetime
-			return {
-				sentenceType: nmeaArr[0],
-				UTtime: nmeaArr[1],
-				status: nmeaArr[2],
-				latitude: nmeaArr[3],
-				dirNS: nmeaArr[4],
-				longitude: nmeaArr[5],
-				dirEW: nmeaArr[6],
-				speed: nmeaArr[7],
-				track: nmeaArr[8],
-				UTdate: nmeaArr[9],
-				variation: nmeaArr[10],
-				EorW: nmeaArr[11],
-				checksum: nmeaArr[12],
-				UTCdateTime: dt
-			};
-		},
-		gsv: function(nmeaArr) {
-			/* 
-		  	GSV has a variable number of fields, depending on the number of satellites found
-				example: $GPGSV,3,1,12, 05,58,322,36, 02,55,032,, 26,50,173,, 04,31,085, 00*79
-			The min number of fields is 4. After that, each satellite has a group of 4 values 
-			
-		  	*/
-			var numFields = (nmeaArr.length - 4) / 4;
-			var sats = [];
-			for (var i=0; i < numFields; i++) {
-				var offset = i * 4 + 4;
-				sats.push({id: nmeaArr[offset],
-				elevationDeg: +nmeaArr[offset+1],
-				azimuthTrue: +nmeaArr[offset+2],
-				SNRdB: +nmeaArr[offset+3]});
-			}
-			var checksum = nmeaArr[(nmeaArr.length - 1)];
-			return {
-				sentenceType: nmeaArr[0],
-				numMsgs: nmeaArr[1],
-				msgNum: nmeaArr[2],
-				satsInView: nmeaArr[3],
-				satellites: sats,
-				checksum: checksum
-			};
-		}
-	},
-/*
-	turn GPS date/time text (eg, date May 23, 2012 is 230512) into JS Date object
-	function modified from https://github.com/dmh2000/node-nmea
-	@udate in format ddmmyy, 	example: 160614   <-- June 16, 2014
-	@utime in format hhmmss.ss, example: 180827.0 <-- 18:08:27.0
-*/
-	parseGPSDateTime: function(udate, utime) {
-		// numbers must be strings first in order to use slice()
-		udate = udate.toString();
-		utime = utime.toString();
-		var h = parseInt(utime.slice(0, 2), 10);
-		var m = parseInt(utime.slice(2, 4), 10);
-		var s = parseInt(utime.slice(4, 6), 10);
-		var D = parseInt(udate.slice(0, 2), 10);
-		var M = parseInt(udate.slice(2, 4), 10);
-		var Y = parseInt(udate.slice(4, 6), 10);
-
-		// hack : GPRMC date doesn't specify century. GPS came out in 1973
-		// so if year is less than 73 its 2000, otherwise 1900
-		if (Y < 73) {
-			Y = Y + 2000;
-		} else {
-			Y = Y + 1900;
-		}
-		return new Date(Date.UTC(Y, M, D, h, m, s));
-	},
-/*
 	Get number of records on device in PouchDB
 */
 	getRecordCount: function(callback){
@@ -667,7 +527,6 @@ var app = {
 			//case 'freq':
 			//case 'storage':
 			//case 'bt':
-				//div = status_type + '_status';
 				div = '#'+status_type + '_status';
 				break;
 			// pieces of records status line:
