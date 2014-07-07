@@ -3,3 +3,6 @@ hooks
 platforms/android/
 plugins/
 www/sentences.txt
+www/js/nmeaParser_scratch.js
+www/js/nmea_jamesp.js
+www/sample-begps2200-nmea-over-rfcomm.txt

@@ -4,9 +4,9 @@ var app = {
 	pouchDBName: "mypouchgeoraw0701-1110p", // name of the database pouchDB uses locally on device (NOT remote couchDB)
 	nmeaPacket: [], // group of nmea sentences, used for buffering
 	usingRaw: true,	
-	nmeaRawArr: [],
-	pouchObjCreated: false,
+	nmeaRawArr: [], // array of all sentences (this COULD be in local storage instead ... ?)
 	nmeaFirstSentenceType: '', // for raw data, don't assume RMC -- just get the first type that comes thru
+	pouchObjCreated: false, // track creation of new object to contain attachment
 	timeStored: new Date().getTime(), // track last save to PouchDB (milliseconds) 
 	timeInterval: 30 * 1000, // min time between each save to PouchDB (seconds to milliseconds)
 	portOpen: false, // keep track of whether BT is connected
@@ -19,7 +19,7 @@ var app = {
 		numRows: 0,
 		address: 0,
 		dbName: '',
-		lastSuccess: {} // in case this attempt failed, remember details of last successful one
+		lastSuccess: false // in case this attempt failed, remember details of last successful one (object)
 	}, 
 
 	// Application Constructor
@@ -48,7 +48,7 @@ var app = {
 	// The scope of 'this' is the event. In order to call the 'receivedEvent'
 	// function, we must explicity call 'app.receivedEvent(...);'
 	onDeviceReady: function() {
-		// get saved settings from previous run
+		// get saved settings from previous run (server address, etc)
 		app.getStoredSettings();
 
 		// bluetooth
@@ -166,12 +166,16 @@ var app = {
 		// returns failure. In other words, if not connected, then connect:
 		var connect = function () {
 			// if not connected, do this:
-			app.displayStatus('device',"Attempting to connect to " + app.deviceName);
+			app.displayStatus('device',"Attempting to connect to <b>" + app.deviceName + "</b>");
+
+			var btFail = function(err){
+				app.displayStatus('device',"Could not connect to <b>" + app.deviceName + "</b>");
+			};
 			// attempt to connect:
 			bluetoothSerial.connect(
 				app.deviceAddress,  // device to connect to
 				app.openPort,    // start listening if you succeed
-				app.showError    // show the error if you fail
+				btFail    // show the error if you fail
 			);
 		};
 			
@@ -179,7 +183,7 @@ var app = {
 		// returns success  In other words, if  connected, then disconnect:
 		var disconnect = function () {
 			//app.display("Attempting to disconnect");
-			app.displayStatus('device',"Attempting to disconnect from " + app.deviceName);
+			app.displayStatus('device',"Attempting to disconnect from <b>" + app.deviceName + "</b>");
 			// if connected, do this:
 			bluetoothSerial.disconnect(
 				app.closePort,     // stop listening to the port
@@ -226,9 +230,7 @@ var app = {
 */
 	closePort: function() {
 		// if you get a good Bluetooth serial connection:
-		//app.display("Disconnected from: " + app.deviceName);
-		app.displayStatus('device',"Disconnected from: " + app.deviceName);
-		//app.showStatus("Disconnected from: " + app.deviceName);
+		app.displayStatus('device',"Disconnected from: <b>" + app.deviceName + "</b>");
 		app.portOpen = false;
 		// change the button's name:
 		connectButton.innerHTML = "Connect";
@@ -404,7 +406,7 @@ var app = {
 /*
 	when there's a connection (attempt) to couch, save the info
 */
-	logConnection: function(logObj,doStuff) {
+	logConnection: function(logObj,callback) {
 		if(logObj.success){
 			// save as most recent success
 			logObj.lastSuccess = logObj;
@@ -422,7 +424,7 @@ var app = {
 		// serialize the whole thing and save it to local storage
 		localStorage.setItem('lastRemoteConnection',JSON.stringify(app.lastRemoteConnection));
 		// callback
-		doStuff();	
+		callback();	
 	},
 
 	displayLastConnection: function() {
@@ -444,6 +446,7 @@ var app = {
 			app.displayStatus('num_new_records',logObj.numRows);
 			app.displayStatus('ip',logObj.address);
 			app.displayStatus('time_stored',moment(logObj.datetime).format('HH:mm, MMM DD'));
+
 		}
 	},
 /*

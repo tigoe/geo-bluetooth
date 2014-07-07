@@ -1,4 +1,7 @@
-// Utility functions for parsing NMEA sentences (RO)
+/*
+	Utility functions for parsing NMEA sentences (RO)
+	uses code borrowed/modified from https://github.com/jamesp/node-nmea
+*/
 var nmea = {
 	// take in sentence string or array of sentence strings
 	parse: function(strOrArr){
@@ -14,9 +17,10 @@ var nmea = {
 	},
 /* 
 	Break up NMEA sentences of certain types into known fields
-	(some code borrowed from https://github.com/jamesp/node-nmea)
+	Handles: RMC, GSV
+	Other common types, to add: GGA, GSA, VTG
 */
-	sentence: {
+	decode: {
 		rmc: function(nmeaArr){
 			dt = nmea.convertGPSDateTime(nmeaArr[9],nmeaArr[1]); //human-readable datetime
 			return {
@@ -48,9 +52,9 @@ var nmea = {
 			for (var i=0; i < numFields; i++) {
 				var offset = i * 4 + 4;
 				sats.push({id: nmeaArr[offset],
-				elevationDeg: +nmeaArr[offset+1],
-				azimuthTrue: +nmeaArr[offset+2],
-				SNRdB: +nmeaArr[offset+3]});
+					elevationDeg: +nmeaArr[offset+1],
+					azimuthTrue: +nmeaArr[offset+2],
+					SNRdB: +nmeaArr[offset+3]});
 			}
 			var checksum = nmeaArr[(nmeaArr.length - 1)];
 			return {
@@ -71,8 +75,8 @@ var nmea = {
 		// find the type
 		typeProp = nmeaArr[0].slice(-3).toLowerCase(); //eg: rmc
 		// process the sentence if the type is in the nmeaDecode object
-		if(typeProp in nmea.sentence){
-			nmeaObj = nmea.sentence[typeProp](nmeaArr);
+		if(typeProp in nmea.decode){
+			nmeaObj = nmea.decode[typeProp](nmeaArr);
 		} else {
 			nmeaObj = {};
 			//add the sentence type as a named field
@@ -87,7 +91,7 @@ var nmea = {
 		return nmeaObj;
 	},
 	/*
-	turn GPS date/time text (eg, date May 23, 2012 is 230512) into JS Date object
+	Turn GPS date/time text (eg, date May 23, 2012 is 230512) into JS Date object
 	function modified from https://github.com/dmh2000/node-nmea
 	@udate in format ddmmyy, 	example: 160614   <-- June 16, 2014
 	@utime in format hhmmss.ss, example: 180827.0 <-- 18:08:27.0
@@ -104,7 +108,7 @@ var nmea = {
 		var Y = parseInt(udate.slice(4, 6), 10);
 
 		// hack : GPRMC date doesn't specify century. GPS came out in 1973
-		// so if year is less than 73 its 2000, otherwise 1900
+		// so if year is less than 73 it's 2000, otherwise 1900
 		if (Y < 73) {
 			Y = Y + 2000;
 		} else {
