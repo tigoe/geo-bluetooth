@@ -1,4 +1,8 @@
 TODO
+- Detect state change for BT -- show when it has been disconnected non-manually
+- CSS button highlight (off!)
+- Update num records on device after couch save (1 additional record is added as an attachment)
+
 x - update README.md with couch instructions
 x - format objects w/ property names for RMC & GSV types
 x - get sentences as a packet instead of one-by-one

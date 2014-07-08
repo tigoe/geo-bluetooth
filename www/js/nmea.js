@@ -17,8 +17,8 @@ var nmea = {
 	},
 /* 
 	Break up NMEA sentences of certain types into known fields
-	Handles: RMC, GSV
-	Other common types, to add: GGA, GSA, VTG
+	Handles: RMC, GSV, GGA
+	Other common types, to add: GSA, VTG
 */
 	decode: {
 		rmc: function(nmeaArr){

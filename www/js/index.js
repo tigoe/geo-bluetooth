@@ -298,30 +298,12 @@ var app = {
 	},
 
 	createAttachmentRecord:function(){
-		console.log('CALL!  createAttachmentRecord');
-		console.log('pouchObjCreated bool = ' + app.pouchObjCreated);
+		//console.log('pouchObjCreated bool = ' + app.pouchObjCreated);
 		dBase.attachTxtFile(false,app.nmeaRawArr,'nmeatext').then(function(){
+			console.log("THEN attach");
 			app.pouchObjCreated = true;
 			app.saveToCouch();
 		}); 
-		// create a new record, with a timestamp field
-		/*dBase.add({datetime:new Date()},function(response){
-			// add an attachment to the new record
-			if (response.ok === true){		
-				var doc = new Blob(app.nmeaRawArr);
-				// add attachment to the record just created
-				dBase.db.putAttachment(response.id, 'nmeatext', response.rev, doc, 'text/plain', function(err, res) {
-					console.log('put attachment');
-					//console.log(JSON.stringify(res));
-					//app.timeStored = new Date().getTime();
-					app.pouchObjCreated = true;
-					app.saveToCouch();
-				});
-			} else {
-				console.log('problem ');
-			}
-				
-		});*/
 	},
 /*
 	update pouchDB to remote couchDB

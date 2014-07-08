@@ -125,7 +125,7 @@ var dBase = {
 		// if no doc provided, make a new one.
 		if (doc === false){
 			var newdoc = {datetime:new Date()}; // empty except for timestamp
-			this.db.post(newdoc).then(function(response){
+			return this.db.post(newdoc).then(function(response){
 				attach(response,dataArr,fieldName);
 			});
 		} else {
