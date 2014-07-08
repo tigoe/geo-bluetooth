@@ -66,11 +66,8 @@ var app = {
 			//app.displayStatus('storage',num_rows + ' Records on device');
 			app.displayStatus('num_device_records',num_rows);
 		}); 
-
-		
 		// show storage frequency settings
 		app.displayStatus('freq_secs',app.timeInterval/1000);
-
 		// display remote storage history
 		app.displayLastConnection();
 	},
@@ -165,11 +162,19 @@ var app = {
 		// connect() will get called only if isConnected() (below)
 		// returns failure. In other words, if not connected, then connect:
 		var connect = function () {
-			// if not connected, do this:
 			app.displayStatus('device',"Attempting to connect to <b>" + app.deviceName + "</b>");
-
+			
+			// if not connected, do this:
 			var btFail = function(err){
-				app.displayStatus('device',"Could not connect to <b>" + app.deviceName + "</b>");
+				// in the event we WERE connected, but now are not
+				if (app.portOpen){
+					app.displayStatus('device',"Lost connection to <b>" + app.deviceName + "</b>");	
+				} else {
+					app.displayStatus('device',"Could not connect to <b>" + app.deviceName + "</b>");
+				}
+				// make sure the button shows the right state
+				app.setBTConnectionButton("connect");
+				
 			};
 			// attempt to connect:
 			bluetoothSerial.connect(
@@ -199,29 +204,22 @@ var app = {
     and changes the button:
 */
 	openPort: function() {
-		// if you get a good Bluetooth serial connection:
-		var secs = app.timeInterval / 1000;
-		var startTime = moment().format('HH:mm, MMM DD');
-
-		app.displayStatus('device',"Connected to <b>" + app.deviceName + "</b> at " + startTime);
-		//app.displayStatus('freq', "Storing to device every " + secs + " seconds");
-		app.displayStatus('freq_secs', secs);
-		app.displayStatus('db',''); //clear db status message
-
 		app.portOpen = true;
 		
-		// change the button's name:
-		connectButton.innerHTML = "Disconnect";
-		// change button color (class)
-		$(connectButton).removeClass('btn-success');
-		$(connectButton).addClass('btn-danger');
+		// show connected status
+		var secs = app.timeInterval / 1000;
+		var startTime = moment().format('HH:mm, MMM DD');
+		app.displayStatus('device',"Connected to <b>" + app.deviceName + "</b> at " + startTime);
+		app.displayStatus('freq_secs', secs);
+		app.displayStatus('db',''); //clear db status message
+			
+		app.setBTConnectionButton("disconnect");
+
 		// set up a listener to listen for newlines
 		// and display any new data that's come in since
 		// the last newline:
 		bluetoothSerial.subscribe('\n', function (data) {
 			app.handleNmeaData(data);
-			// for raw data version:
-			//app.handleNmeaRawData(data);
 		});
 	},
 
@@ -230,13 +228,10 @@ var app = {
 */
 	closePort: function() {
 		// if you get a good Bluetooth serial connection:
-		app.displayStatus('device',"Disconnected from: <b>" + app.deviceName + "</b>");
+		app.displayStatus('device',"Disconnected from <b>" + app.deviceName + "</b>");
 		app.portOpen = false;
-		// change the button's name:
-		connectButton.innerHTML = "Connect";
-		// change button color
-		$(connectButton).removeClass('btn-danger');
-		$(connectButton).addClass('btn-success');
+		
+		app.setBTConnectionButton("connect");
 		// unsubscribe from listening:
 		bluetoothSerial.unsubscribe(
 			function (data) {
@@ -330,13 +325,20 @@ var app = {
 					// show in couch status area at bottom
 					$('#couchStatusMsg').html(alert_msg);
 
-					// show shorter version of error msg in top status bar.
 					if (!success){ 
+						// show shorter version of error msg in top status bar.
 						alert_msg = "Could not connect to CouchDB."; 
+					} else {
+						// update number of local records 
+						//   -- 1 additional record is added for attachment at time of connection to couch
+						app.getRecordCount(function(num_rows){
+							app.totalDeviceRecords = num_rows;
+							app.displayStatus('num_device_records',num_rows);
+						});
 					}
 					alert_msg += " Resumed device storage.";
 					app.displayStatus('db',alert_msg); //display to top status
-					// TODO: show total num of records in remote db -- use Pouch's count at the time of connection
+					 
 					// log connection attempt
 					app.logConnection({
 							success: success,
@@ -570,7 +572,20 @@ var app = {
 			
 		}
 		
+	},
+/*
+	Button for connecting/disconnecting from Bluetooth
+	Takes an explicit @state to change to, 'connect' or 'disconnect'
+*/
+	setBTConnectionButton: function(state){
+		if (state.toLowerCase() == "connect"){
+			connectButton.innerHTML = "Connect";
+			$(connectButton).removeClass('btn-danger');
+			$(connectButton).addClass('btn-success');
+		} else {
+			connectButton.innerHTML = "Disconnect";
+			$(connectButton).removeClass('btn-success');
+			$(connectButton).addClass('btn-danger');
+		}	
 	}
-
-
 };

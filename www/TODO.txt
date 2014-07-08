@@ -1,7 +1,9 @@
 TODO
-- Detect state change for BT -- show when it has been disconnected non-manually
-- CSS button highlight (off!)
-- Update num records on device after couch save (1 additional record is added as an attachment)
+x - Detect state change for BT -- show when it has been disconnected non-manually
+~ - CSS -webkit-tap-highlight-color: rgba(255, 255, 255, 0); --> SHOULD work but is not working ..?
+x - Update num records on device after couch save (1 additional record is added as an attachment)
+- Add VTG NMEA type
+- fix: Doesn't save first nmea record right away
 
 x - update README.md with couch instructions
 x - format objects w/ property names for RMC & GSV types
