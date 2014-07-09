@@ -320,6 +320,9 @@ var app = {
 		console.log('hello from saveToCouch. /// pouchObjCreated bool = ' + app.pouchObjCreated);
 		app.changeConnectBtnState(); // change to progress button - also sets app.couchConnInProgress prop
 		app.displayStatus('db','Connecting to CouchDB. Paused device storage.');
+		if (app.metaConnectionLog.end_connection_time === false){
+			app.logBTConnection('end');
+		}
 
 		// make sure there's a server address set
 		if (!dBase.remoteServer || dBase.remoteServer == 'http://my.ip.addr:5984/'){
