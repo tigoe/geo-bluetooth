@@ -46,10 +46,19 @@ This is a project to test reading GPS data from a Garmin GLO or Bad Elf Pro via 
 
 ### Using the app
 
-Once you have the app running, here's how to run it:
+#### Once you have the app running, here's how to capture data:
 
 * Make sure Bluetooth is turned on, and that you are paired with your Garmin GLO or Bad Elf Pro
 * Click Scan to scan for available Bluetooth GPS devices, and then pick yours from the options menu.
+* Set the storage frequency in the app. This will set how frequently the app stores a NMEA record. The default is 30 seconds if you don't set it.
 * Click Connect to start the connection to your GPS device. You should see data coming in the NMEA log of the app.
+* To stop capturing data, click Disconnect.
+* The app will continue logging data in the background until you click Disconnect, or Save to Couch
+
+#### To upload data: 
+* Set up CouchDB on your laptop as described above, and configure CouchDB as described above.
+* After a few minutes or a whole day in the field, click Save to Couch. This will automatically disconnect from your Bluetooth GPS app and stop logging. After a few seconds, you should get a message saying "Successfully saved to CouchDB". 
+* If you get an error, check that you have CouchDB running, that your device is on the same local area network as your laptop, and that you have the network address correct as described above.
+
 
 
