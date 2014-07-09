@@ -1,6 +1,6 @@
 ## Geo-Blueotooth
 
-This is a project to test reading GPS data from a Garmin GLO via Bluetooth. It uses Don Coleman's [BluetoothSerial plugin for PhoneGap/Cordova](https://github.com/don/BluetoothSerial).
+This is a project to test reading GPS data from a Garmin GLO or Bad Elf Pro via Bluetooth. It uses Don Coleman's [BluetoothSerial plugin for PhoneGap/Cordova](https://github.com/don/BluetoothSerial).
 
 
 ### To install the project:
@@ -42,5 +42,14 @@ This is a project to test reading GPS data from a Garmin GLO via Bluetooth. It u
 	{"couchdb":"Welcome","uuid":"fec59fb0d1263eb47eea6c05b472c14c","version":"1.5.1","vendor":{"version":"1.5.1","name":"The Apache Software Foundation"}}
 
 * In the geo-bluetooth application, under "Configure CouchDB", set the *Server URL* to http://YOUR_IP_ADDRESS:5984/ as above (http and trailing slash are important) and *Database Name* to the name of the CouchDB database you just created.
+
+
+### Using the app
+
+Once you have the app running, here's how to run it:
+
+* Make sure Bluetooth is turned on, and that you are paired with your Garmin GLO or Bad Elf Pro
+* Click Scan to scan for available Bluetooth GPS devices, and then pick yours from the options menu.
+* Click Connect to start the connection to your GPS device. You should see data coming in the NMEA log of the app.
 
 
