@@ -61,4 +61,18 @@ This is a project to test reading GPS data from a Garmin GLO or Bad Elf Pro via 
 * If you get an error, check that you have CouchDB running, that your device is on the same local area network as your laptop, and that you have the network address correct as described above.
 
 
+### Reading the data in CouchDB:
+
+The majority of records in  CouchDB will be parsed NMEA sentences, one for every 30 seconds (assuming the default) that you logged. If you want to see the raw NMEA log record, choose "Temporary View" from the View menu in Couch. This will bring you a search box where you can run a query on the database. Type the following into the "Map Function" box and then click Run:
+
+```javascript
+function(doc) {
+  if (doc._attachments) {
+    emit(null, doc);
+  }
+}
+```
+
+You should get a single record for your whole logging session.  Click on the key value, which should be 'null'. When it opens, click 'nmeatext' and you'll get a page of NMEA sentences. You can copy and paste that for whatever nefarious GIS plans you have.
+
 
