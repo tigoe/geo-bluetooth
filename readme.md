@@ -63,7 +63,13 @@ This is a project to test reading GPS data from a Garmin GLO or Bad Elf Pro via 
 
 ### Reading the data in CouchDB:
 
-The majority of records in  CouchDB will be parsed NMEA sentences, one for every 30 seconds (assuming the default) that you logged. If you want to see the raw NMEA log record, choose "Temporary View" from the View menu in Couch. This will bring you a search box where you can run a query on the database. Type the following into the "Map Function" box and then click Run:
+The majority of records in  CouchDB will be parsed NMEA sentences, one for every 30 seconds (assuming the default) that you logged. If you want to see the raw NMEA log record, choose "Temporary View" from the View menu in Couch:
+
+![CouchDB temporary view](images/temporary_view.png "CouchDB's temporary view menu")
+
+ This will bring you a search box where you can run a query on the database:
+ 
+Type the following into the "Map Function" box and then click Run:
 
 ```javascript
 function(doc) {
@@ -73,6 +79,10 @@ function(doc) {
 }
 ```
 
-You should get a single record for your whole logging session.  Click on the key value, which should be 'null'. When it opens, click 'nmeatext' and you'll get a page of NMEA sentences. You can copy and paste that for whatever nefarious GIS plans you have.
+You should get a record representing your whole logging session Click on the key value, which should be 'null':
+
+When it opens, click 'nmeatext' and you'll get a page of NMEA sentences. You can copy and paste that for whatever nefarious GIS plans you have:
+
+
 
 
