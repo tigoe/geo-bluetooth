@@ -17,6 +17,10 @@ This is a project to test reading GPS data from a Garmin GLO via Bluetooth. It u
 
 	$ cordova platform add android
 
+* AND/OR add the iOS plaform 
+
+	$ cordova platform add ios
+
 * Add the Bluetooth plugin:
 
 	$ cordova plugin add com.megster.cordova.bluetoothserial
@@ -24,6 +28,8 @@ This is a project to test reading GPS data from a Garmin GLO via Bluetooth. It u
 * Plug in your android device, then compile and run:
 
 	$ cordova run
+
+_**iOS Note:** The iOS status bar overlaps the phonegap app in an ugly way. It's not crucial,  but if you like, you can fix  by changing a few lines of iOS code. In your phonegap project, open the file /platforms/ios/geo-bluetooth/Classes/MainViewController.m and copy and paste the code described here: http://stackoverflow.com/a/19249775/225134_
 
 ### To set up CouchDB for use with the app.
 

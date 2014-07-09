@@ -1,0 +1,78 @@
+
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="format-detection" content="telephone=no" />
+        <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" />
+        
+        <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+        <link rel="stylesheet" type="text/css" href="css/style.css" />
+
+        <title>GLO reader app</title>
+    </head>
+    <body>
+        <div class="app">
+            <div id="bluetooth_btn_wrapper">
+                <button id="connectButton" class="button btn btn-success btn-lg" >Connect</button>
+                <button id="scanButton" class="button btn btn-default btn-lg">Scan</button>
+            </div>
+            <div class="dropdown_container">
+                <select id="devices" class="select form-control"></select>
+            </div>
+            <div id="status">
+                <div class="status_line" id="device_status">&nbsp;</div>
+                <div class="status_line" id="records_status">
+                    <span id="num_device_records">x</span> records on device. Storing to device every <span id="freq_secs">n</span> secs.<br/>
+                    <div id="no-history">No remote storage history available</div>
+                    <div id="history">
+                        <span id="num_new_records">x</span> new records stored to <span id="ip">x</span> at <span id="time_stored">x</span>
+                    </div>
+                    <!-- OR: No remote storage history -->
+                </div>
+
+                <div class="status_line" id="db_status">&nbsp;</div>
+                <!--<div class="status_line" id="storage_status">&nbsp;</div>-->
+            </div>
+            <div id="message">Hello.</div>
+            <div class="header_bar"><h4>NMEA Log</h4></div>
+            <div id="nmea_viewer">
+                <div class="nmea_log" id="live_nmea">Live NMEA</div>
+                <div class="nmea_log" id="last_nmea">&nbsp;</div>    
+            </div>
+
+        <div id = "couchConfig">
+            <h3 class = "config_header"><span class="glyphicon glyphicon-chevron-right"></span>Configure CouchDB</h3>
+            <div class="config_form">
+                <label for="couch_server">Server URL</label>
+                <input type="text" name="couch_server" id="couchServer" value="http://192.168.1.2:5984/" class="form-control" />
+                <label for="couch_dbname">Database name</label>
+                <input type="text" name="couch_dbname" id="couchDbName" value="geo-bluetooth" class="form-control" />
+                <button id="configButton" class="button button btn btn-default btn-sm">Save</button>
+            </div>
+        </div>
+        <div id="storageConfig">
+            <h3 class = "config_header"><span class="glyphicon glyphicon-chevron-right"></span>Set Storage Frequency</h3>
+            <div class="config_form">
+                <p>How often should NMEA data be stored to this device? (in seconds) </p>
+                <input type="number" name="seconds" id="secondsInput" value="30" class="form-control" size="2" />
+                <!--<input id="seconds_slider" type="range" min="10" max="600" value="30" step = "15" />-->
+                <button id="secondsButton" class="button button btn btn-default btn-sm">Save</button>
+            </div>
+        </div>
+
+        <button id="couchButton" class="button button btn btn-default btn-lg btn-info">Save To Couch</button>
+        <div id="couchStatusMsg"></div>
+        </div>
+        <script type="text/javascript" src="cordova.js"></script>
+        <script type="text/javascript" src="js/lib/jquery-1.8.2.min.js"></script>
+        <script type="text/javascript" src="js/lib/pouchdb-2.2.0.min.js"></script>
+        <script type="text/javascript" src="js/lib/moment.min.js"></script>
+        <script type="text/javascript" src="js/dBase.js"></script>
+        <script type="text/javascript" src="js/nmea.js"></script>
+        <script type="text/javascript" src="js/index.js"></script>
+        <script type="text/javascript">
+            app.initialize();
+        </script>
+    </body>
+</html>

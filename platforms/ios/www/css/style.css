@@ -1,0 +1,131 @@
+*{
+	/*turn off highlighting when buttons tapped */
+	/*-webkit-tap-highlight-color: rgba(0,0,0,0);*/
+	-webkit-tap-highlight-color:  rgba(255, 255, 255, 0);
+
+}
+input{
+	-webkit-tap-highlight-color:  rgba(255, 255, 255, 0);
+}
+.button {            
+    padding: 1em;
+    margin: .6em
+}
+
+.select {
+	/*width: 90% !important;*/
+    margin: 2em auto;
+    
+}
+#devices{
+	/*display:block;*/
+}
+#bluetooth_btn_wrapper{
+	display: block;
+	float: left;
+	clear: right;
+
+}
+.dropdown_container{
+	display: block;
+	float:left;
+	min-width: 30%;
+	margin-left: 1em;
+}
+#message {
+	border: 1px solid #ccc;
+	margin: 0 1em;
+	padding: 1em;
+	min-height: 8em;
+	display: none;
+}
+#nmea_viewer{
+	overflow: hidden;
+	margin: 0 1em;
+	padding: 1em;
+	/*border: 1px solid #ccc;*/
+	background-color: #333;
+	color: #ccc;
+	min-height: 24em;
+	height: 24em;
+}
+.nmea_log{
+	min-height: 10em;
+	overflow: auto;
+}
+#last_nmea{
+	/*border:1px solid #666;
+	padding: .5em;*/
+}
+#last_nmea p{ /* Label for "last record" section of nmea log viewer */
+	color: #39b3d7;
+}
+.header_bar{
+	background-color: #000;
+	color: #39b3d7;
+	margin: 0 1em;
+	padding: .5em 1em;
+}
+.header_bar h4{
+	padding:0;
+	margin:0;
+	font-weight: normal;
+}
+#couchConfig, #storageConfig{
+	margin: 1em;
+	border: 1px solid #ccc;
+	background-color: #eee;
+	padding: 1em;
+}
+#couchButton{
+	float:left;
+}
+#couchStatusMsg{
+	margin: 1em;
+	padding: 1em;
+	/*border:1px solid #333;*/
+}
+#secondsInput{
+	width:6em;
+	
+}
+#status{
+	/*margin: 0 1em;
+	background-color: #eff1f2;
+	*/
+	clear: both;
+	background-color: #eff1f2;
+	min-height: 3em;
+	margin: 0 1em;
+	padding: .3em 1em;
+	border: 1px solid #ccc;
+	
+}
+.status_line{
+	min-height: 1em;
+	/*border:1px solid #39b3d7;
+	border-collapse: collapse;*/
+}
+
+.config_header{
+	padding: 0;
+	margin: 0;
+	font-size: 1.2em;
+}
+.config_form{
+	margin-top: 1em;
+	display: none;
+}
+.config_form input{
+	margin: .6em;
+}
+.config_header .glyphicon{
+	padding-right: .5em;
+	font-size: 75%;
+}
+#history{
+	display:none;
+}
+#no-history{
+	display:block;
+}

@@ -1,0 +1,91 @@
+/*
+
+This is just an example of NMEA sentences for reference while developing
+
+*/
+
+$GPVTG,,T,,M,,N,,K,N*2C
+$GPRMC,180827.0,V,4043.79444,N,07359.60944,W,,,160614,013.0,W,N*11
+$GPGGA,180827.0,4043.79444,N,07359.60944,W,0,00,,,M,,M,,*5B
+$GPRMC,180826.9,V,4043.79444,N,07359.60944,W,,,160614,013.0,W,N*19
+$GPGGA,180826.9,4043.79444,N,07359.60944,W,0,00,,,M,,M,,*53
+$GPVTG,,T,,M,,N,,K,N*2C
+$GPRMC,180827.0,V,4043.79444,N,07359.60944,W,,,160614,013.0,W,N*11
+$GPGGA,180827.0,4043.79444,N,07359.60944,W,0,00,,,M,,M,,*5B
+$GPVTG,,T,,M,,N,,K,N*2C
+$GPGSA,A,1,,,,,,,,,,,,,,,*1E
+$GPGSV,1,1,00*79
+
+
+// notes 
+$--RMC,	hhmmss.ss,	A,	llll.ll,	a,	yyyyy.yy,		a,	x.x,	x.x,	xxxx,	x.x,	a*hh
+$GPRMC,	180827.0,	V,	4043.79444,	N,	07359.60944,	W,	,		,		160614,	013.0,	W,		N*11
+
+
+/** RMC encoder object
+	 * $GPRMC,hhmmss.ss,A,llll.ll,a,yyyyy.yy,a,x.x,x.x,ddmmyy,x.x,a*hh
+
+	 RMC  = Recommended Minimum Specific GPS/TRANSIT Data
+
+	 1    = UTC of position fix
+	 2    = Data status (V=navigation receiver warning)
+	 3    = Latitude of fix
+	 4    = N or S
+	 5    = Longitude of fix
+	 6    = E or W
+	 7    = Speed over ground in knots
+	 8    = Track made good in degrees True
+	 9    = UT date
+	 10   = Magnetic variation degrees (Easterly var. subtracts from true course)
+	 11   = E or W
+	 12   = Checksum
+
+	 input: {
+	 date:Date UTC
+	 status:String (single character)
+	 latitude:decimal degrees (N is +)
+	 longitude:decimal degrees (E is +)
+	 speed:decimal knots
+	 course:decimal degrees
+	 variation:decimal magnetic variation (E is -)
+	 }
+*/
+
+{
+	 1 date:Date UTC
+	 2 status:String (single character)
+	 3 latitude:decimal degrees (N is +)
+	 4 dirNS
+	 5 longitude:decimal degrees (E is +)
+	 6 dirEW
+	 7 speed:decimal knots
+	 8 track:
+	 9 UTdate:
+	 10 variation:
+	 11 EorW:
+	 12 checksum:
+	 
+	 }
+
+GSV Satellites in view
+ 1 2 3 4 5 6 7 n
+ | | | | | | | |
+$--GSV,x,x,x,x,x,x,x,...*hh
+1) total number of messages
+2) message number
+3) satellites in view
+4) satellite number
+5) elevation in degrees
+6) azimuth in degrees to true
+7) SNR in dB
+more satellite infos like 4)-7)
+n) Checksum
+
+	   1 2 3 
+$GPGSV,1,1,00*79
+
+numMsgs: +fields[1],
+msgNum: +fields[2],
+satsInView: +fields[3],
+satellites: sats
+
