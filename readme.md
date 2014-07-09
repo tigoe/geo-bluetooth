@@ -47,7 +47,7 @@ _**iOS Note:** The iOS status bar overlaps the phonegap app in an ugly way. It's
 
 	{"couchdb":"Welcome","uuid":"fec59fb0d1263eb47eea6c05b472c14c","version":"1.5.1","vendor":{"version":"1.5.1","name":"The Apache Software Foundation"}}
 
-* In the geo-bluetooth application, under "Configure CouchDB", set the *Server URL* to http://YOUR_IP_ADDRESS:5984/ as above (http and trailing slash are important) and *Database Name* to the name of the CouchDB database you just created.
+* In the geo-bluetooth application, under "Configure CouchDB", set the *Server URL* to http://YOUR_IP_ADDRESS:5984/ as above and *Database Name* to the name of the CouchDB database you just created.
 
 
 ### Using the app

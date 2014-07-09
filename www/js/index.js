@@ -12,6 +12,7 @@ var app = {
 	portOpen: false, // keep track of whether BT is connected
 	couchConnInProgress: false, //track wheter a connection to remote db is in progress
 	totalDeviceRecords: 0, // track num of pouch records on device
+	metaConnectionLog: {}, // stores open/close BT connection times and storage interval
 	//info about last connection to couch
 	lastRemoteConnection: {
 		success: false,
@@ -172,6 +173,8 @@ var app = {
 				} else {
 					app.displayStatus('device',"Could not connect to <b>" + app.deviceName + "</b>");
 				}
+				// log  BT connection 
+				app.logBTConnection('end');
 				// make sure the button shows the right state
 				app.setBTConnectionButton("connect");
 				
@@ -212,6 +215,9 @@ var app = {
 		app.displayStatus('device',"Connected to <b>" + app.deviceName + "</b> at " + startTime);
 		app.displayStatus('freq_secs', secs);
 		app.displayStatus('db',''); //clear db status message
+
+		// log  BT connection
+		app.logBTConnection('start');
 			
 		app.setBTConnectionButton("disconnect");
 
@@ -230,6 +236,8 @@ var app = {
 		// if you get a good Bluetooth serial connection:
 		app.displayStatus('device',"Disconnected from <b>" + app.deviceName + "</b>");
 		app.portOpen = false;
+		// log  BT connection
+		app.logBTConnection('end');
 		
 		app.setBTConnectionButton("connect");
 		// unsubscribe from listening:
@@ -413,6 +421,27 @@ var app = {
 		localStorage.setItem('lastRemoteConnection',JSON.stringify(app.lastRemoteConnection));
 		// callback
 		callback();	
+	},
+	// meta data to be stored in db re: connections to BT device and storage interval
+	logBTConnection: function(start_or_end){
+		if (start_or_end == 'start'){
+			// start a connection log db record
+			app.metaConnectionLog.objtype = "connection-meta";
+			app.metaConnectionLog.start_connection_time = new Date();
+			app.metaConnectionLog.end_connection_time = false;
+			app.metaConnectionLog.interval_length_secs = app.timeInterval / 1000;
+			dBase.add(app.metaConnectionLog,function(res){
+				// when sending this doc back to couch on edit, id and rev properties much have underscores
+				app.metaConnectionLog._id = res.id;
+				app.metaConnectionLog._rev = res.rev;
+			});
+		} else if (start_or_end == 'end'){
+			// set the disconnect time
+			app.metaConnectionLog.end_connection_time = new Date();
+			dBase.update(app.metaConnectionLog,function(res){
+				
+			});
+		}
 	},
 
 	displayLastConnection: function() {
