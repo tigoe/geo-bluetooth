@@ -442,7 +442,8 @@ var app = {
 			// set the disconnect time
 			app.metaConnectionLog.end_connection_time = new Date();
 			dBase.update(app.metaConnectionLog,function(res){
-				
+				//reset this object
+				app.metaConnectionLog = {};
 			});
 		}
 	},
