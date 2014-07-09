@@ -65,10 +65,12 @@ This is a project to test reading GPS data from a Garmin GLO or Bad Elf Pro via 
 
 The majority of records in  CouchDB will be parsed NMEA sentences, one for every 30 seconds (assuming the default) that you logged. If you want to see the raw NMEA log record, choose "Temporary View" from the View menu in Couch:
 
-![CouchDB temporary view](images/temporary_view.png "CouchDB's temporary view menu")
+![CouchDB temporary view](images/view_menu.png "CouchDB's temporary view menu")
 
  This will bring you a search box where you can run a query on the database:
  
+![CouchDB query UI](images/temporary_view.png "CouchDB's query UI")
+
 Type the following into the "Map Function" box and then click Run:
 
 ```javascript
@@ -81,7 +83,46 @@ function(doc) {
 
 You should get a record representing your whole logging session Click on the key value, which should be 'null':
 
+![CouchDB record search result](images/nmea_record_search.png "Record query result")
+
 When it opens, click 'nmeatext' and you'll get a page of NMEA sentences. You can copy and paste that for whatever nefarious GIS plans you have:
+
+````
+$GPRMC,144919.1,V,4041.25492,N,07357.74054,W,,,090714,013.0,W,N*18
+$GPGGA,144919.1,4041.25492,N,07357.74054,W,0,00,,,M,,M,,*5D
+$GPVTG,,T,,M,,N,,K,N*2C
+$GPRMC,144919.2,V,4041.25492,N,07357.74054,W,,,090714,013.0,W,N*1B
+$GPGGA,144919.2,4041.25492,N,07357.74054,W,0,00,,,M,,M,,*5E
+$GPVTG,,T,,M,,N,,K,N*2C
+$GPRMC,144949.5,V,4041.25492,N,07357.74054,W,,,090714,013.0,W,N*19
+$GPGGA,144949.5,4041.25492,N,07357.74054,W,0,00,,,M,,M,,*5C
+$GPVTG,,T,,M,,N,,K,N*2C
+$GPRMC,144949.6,V,4041.25492,N,07357.74054,W,,,090714,013.0,W,N*1A
+$GPGGA,144949.6,4041.25492,N,07357.74054,W,0,00,,,M,,M,,*5F
+$GPVTG,,T,,M,,N,,K,N*2C
+$GPRMC,144949.7,V,4041.25492,N,07357.74054,W,,,090714,013.0,W,N*1B
+$GPGGA,144949.7,4041.25492,N,07357.74054,W,0,00,,,M,,M,,*5E
+$GPVTG,,T,,M,,N,,K,N*2C
+$GPRMC,144949.8,V,4041.25492,N,07357.74054,W,,,090714,013.0,W,N*14
+$GPGGA,144949.8,4041.25492,N,07357.74054,W,0,00,,,M,,M,,*51
+$GPVTG,,T,,M,,N,,K,N*2C
+$GPRMC,144949.9,V,4041.25492,N,07357.74054,W,,,090714,013.0,W,N*15
+$GPGGA,144949.9,4041.25492,N,07357.74054,W,0,00,,,M,,M,,*50
+$GPVTG,,T,,M,,N,,K,N*2C
+$GPRMC,144950.0,V,4041.25492,N,07357.74054,W,,,090714,013.0,W,N*14
+$GPGGA,144950.0,4041.25492,N,07357.74054,W,0,00,,,M,,M,,*51
+$GPVTG,,T,,M,,N,,K,N*2C
+$GPGSA,A,1,,,,,,,,,,,,,,,*1E
+$GPGSV,1,1,00*79
+$GPRMC,145022.9,V,4041.25492,N,07357.74054,W,,,090714,013.0,W,N*10
+$GPGGA,145022.9,4041.25492,N,07357.74054,W,0,00,,,M,,M,,*55
+$GPVTG,,T,,M,,N,,K,N*2C
+$GPRMC,145023.0,V,4041.25492,N,07357.74054,W,,,090714,013.0,W,N*18
+$GPGGA,145023.0,4041.25492,N,07357.74054,W,0,00,,,M,,M,,*5D
+$GPVTG,,T,,M,,N,,K,N*2C
+$GPGSA,A,1,,,,,,,,,,,,,,,*1E
+$GPGSV,1,1,00*79
+````
 
 
 
