@@ -335,13 +335,13 @@ var app = {
 			//console.log('remote server: ' + dBase.remoteServer);
 		} else {
 			// make sure the db url is valid (b/c pouch won't give an error if it's an http problem)
-			dBase.checkDbAddr()
-				.done(function(r){ //got an http response 
-					console.log('!@!@!@! db address check OK');
+			//dBase.checkDbAddr()
+			//	.done(function(r){ //got an http response 
+					//console.log('!@!@!@! db address check OK');
 					dBase.couchReplicate()
 						.on('complete', function(res){
-							console.log('on complete');
-		    				console.log(JSON.stringify(res));
+							//console.log('on complete');
+		    				//console.log(JSON.stringify(res));
 		    				var success = false;
 		    				if (res.ok){
 		    					success = true;
@@ -372,8 +372,8 @@ var app = {
 							});
 						})
 						.on('error', function (err) {
-							console.log('on error');
-		    				console.log(JSON.stringify(err));
+							//console.log('on error');
+		    				//console.log(JSON.stringify(err));
 		    				stat_msg = 'Could not connect to CouchDB. ';
 		    				if (app.portOpen){
 								stat_msg += 'Resumed device storage.';
@@ -386,14 +386,14 @@ var app = {
 							$('#couchStatusMsg').html(error_msg);
 							app.changeConnectBtnState();
 						});
-				})
-				.fail(function(f){
+					
+				/*.fail(function(f){
 					// give an error
 					console.log('db address invalid ' + JSON.stringify(f));
 					alert('Could not connect to Couch at ' + dBase.remoteServer);// + dBase.remoteDbName);
 				
 					app.changeConnectBtnState();
-				});
+				});*/
 
 		
 

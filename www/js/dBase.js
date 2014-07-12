@@ -66,6 +66,7 @@ var dBase = {
 		 .. i put in a question/rfi at https://github.com/pouchdb/pouchdb/issues/1001
 
 		a work-around might be to check actually hitting the url via ajax when it is validated for slashes, etc
+		---> update: appears fixed in pouchdb 2.2.3
 		*/
 		return this.db.replicate.to(fullRemotePath, opts);
 		
@@ -109,10 +110,10 @@ var dBase = {
 			attach(doc,dataArr,fieldName);
 		}
 		
-	},
-	checkDbAddr: function(){
+	}
+	/*checkDbAddr: function(){
 		//var path = this.remoteServer + this.remoteDbName;
 		return $.get(this.remoteServer);
-	}
+	}*/
 
 };
