@@ -67,74 +67,9 @@ var dBase = {
 
 		a work-around might be to check actually hitting the url via ajax when it is validated for slashes, etc
 		*/
-		console.log(this.db);
-		var ro = this.db.replicate.to(fullRemotePath, opts);
-
-		return ro;
-		  /*.on('complete', function (info) {
-		    // handle complete
-		    console.log('on complete');
-		    console.log(JSON.stringify(info));
-		  }).on('error', function (err) {
-		    // handle error
-		    console.log('on error');
-		    console.log(JSON.stringify(err));
-		  });*/
-		/*this.db.replicate.to(fullRemotePath, opts)
-		 .on('complete',function(info){
-		 	console.log('on complete called @#@#@#@#!@#@!#');
-		 	console.log(JSON.stringify(info));
-		 	callback('testA','testB','testC');
-
-		 })
-		 .on('error',function(err){
-		 	console.log(err);
-		 });*/
-
-		// options for couchDB sync
-		/*var opts = { live: false, complete:function(err,res){
-			var result_msg = false;
-			var success = false;
-
-			if (err){
-				console.log('!!HEY!!! Couch error!   '+ JSON.stringify(err));
-				err_msg = '';
-				for (var e in err){
-					err_msg += e + ': ' + err[e] + '____';
-				}
-				console.log('DB ERROR RESPONSE: '+ err_msg);
-				
-				//result_msg = 'DB ERROR RESPONSE: '+ JSON.stringify(res) + 'DB ERROR MESSAGE: ' + JSON.stringify(err);
-				
-				result_msg = 'There was an error connecting to Couch database ';
-				result_msg += dBase.remoteDbName;
-				result_msg += ' on server ' + dBase.remoteServer;
-				result_msg += ' Database response: ' + err.toString();
-				//alert('debug: couch error in couchReplicate '+result_msg);
-				//app.display('debug: couch error in couchReplicate');
-
-			} else {
-				console.log('!!HEY!!! Couch success!');
-				
-				// format of pouch response object
-				// {
-				//   "doc_write_failures": 0, 
-				//   "docs_read": 2, 
-				//   "docs_written": 2, 
-				//   "end_time": "Fri May 16 2014 18:26:00 GMT-0700 (PDT)", 
-				//   "errors": [], 
-				//   "last_seq": 2, 
-				//   "ok": true, 
-				//   "start_time": "Fri May 16 2014 18:26:00 GMT-0700 (PDT)", 
-				//   "status": "complete"
-				// }
-				success = true;
-				result_msg = 'Successfully saved to CouchDB.';
-			}
-			console.log('ready to callback ln 98');
-			callback(result_msg,success,res.docs_written);
-		}};*/
-
+		return this.db.replicate.to(fullRemotePath, opts);
+		
+		
 	},
 	numDocs: function(callback){
 		// asks for doc info but does not include the documents themselves (compare to all() function above)
