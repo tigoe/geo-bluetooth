@@ -301,7 +301,7 @@ var app = {
 	},
 
 	createAttachmentRecord:function(){
-		//console.log('pouchObjCreated bool = ' + app.pouchObjCreated);
+		console.log('pouchObjCreated bool = ' + app.pouchObjCreated);
 		dBase.attachTxtFile(false,app.nmeaRawArr,'nmeatext').then(function(){
 			console.log("THEN attach");
 			app.pouchObjCreated = true;
@@ -314,32 +314,110 @@ var app = {
 	saveToCouch: function(){
 		// for raw data (attachment), create pouch record w/ attachment
 		if (app.usingRaw && !app.pouchObjCreated){
+			console.log('sending to create attachment');
 			app.createAttachmentRecord();
 			return; 
 		}
-		console.log('hello from saveToCouch. /// pouchObjCreated bool = ' + app.pouchObjCreated);
+		console.log("SAVING");
+		//console.log('hello from saveToCouch. /// pouchObjCreated bool = ' + app.pouchObjCreated);
 		app.changeConnectBtnState(); // change to progress button - also sets app.couchConnInProgress prop
-		app.displayStatus('db','Connecting to CouchDB. Paused device storage.');
+		var stat_msg = 'Connecting to CouchDB. ';
+		if (app.portOpen){
+			stat_msg += 'Paused device storage.';
+		}
+		app.displayStatus('db', stat_msg);
 		if (app.metaConnectionLog.end_connection_time === false){
 			app.logBTConnection('end');
 		}
-
 		// make sure there's a server address set
 		if (!dBase.remoteServer || dBase.remoteServer == 'http://my.ip.addr:5984/'){
 			alert('To connect to CouchDB, please set the server address.');
 			//console.log('remote server: ' + dBase.remoteServer);
 		} else {
+			// make sure the db url is valid (b/c pouch won't give an error if it's an http problem)
+			dBase.checkDbAddr()
+				.done(function(r){ //got an http response 
+					console.log('!@!@!@! db address check OK');
+					dBase.couchReplicate()
+						.on('complete', function(res){
+							console.log('on complete');
+		    				console.log(JSON.stringify(res));
+		    				var success = false;
+		    				if (res.ok){
+		    					success = true;
+		    					stat_msg = 'Successfully saved to CouchDB. ';
+		    					if (app.portOpen){
+									stat_msg += 'Resumed device storage.';
+								}
+		    					app.displayStatus('db',stat_msg); //display to top status
+		    					app.changeConnectBtnState();
+		    					// update number of local records 
+								//   ... 1 additional record is added for attachment at time of connection to couch
+								app.getRecordCount(function(num_rows){
+									app.totalDeviceRecords = num_rows;
+									app.displayStatus('num_device_records',num_rows);
+								});
+		    				}
+		    				// log connection attempt
+							app.logConnection({
+								success: success,
+								datetime: new Date(),
+								address: dBase.remoteServer,
+								dbName: dBase.remoteDbName,
+								numRows: res.docs_written // num rows saved to db
+							},function(){
+								app.displayLastConnection();
+								// for the raw data version: reset the raw data obj flags
+								app.pouchObjCreated = false;
+							});
+						})
+						.on('error', function (err) {
+							console.log('on error');
+		    				console.log(JSON.stringify(err));
+		    				stat_msg = 'Could not connect to CouchDB. ';
+		    				if (app.portOpen){
+								stat_msg += 'Resumed device storage.';
+							}
+		    				app.displayStatus('db',stat_msg); // short version, for top status
+		    				var error_msg = 'There was an error connecting to Couch database ';
+							error_msg += dBase.remoteDbName;
+							error_msg += ' on server ' + dBase.remoteServer;
+							error_msg += ' Database response: ' + err.toString();
+							$('#couchStatusMsg').html(error_msg);
+							app.changeConnectBtnState();
+						});
+				})
+				.fail(function(f){
+					// give an error
+					console.log('db address invalid ' + JSON.stringify(f));
+					alert('Could not connect to Couch at ' + dBase.remoteServer);// + dBase.remoteDbName);
+				
+					app.changeConnectBtnState();
+				});
+
+		
+
+
+
+			/*dBase.couchReplicate(function(a,b,c){
+				console.log('testing replicate vars: ' + a + b + c);
+			});*/
+
 			// save to couch
-			dBase.couchReplicate(function(alert_msg,success,recordsSaved){ 
+			/*dBase.couchReplicate(function(alert_msg,success,recordsSaved){ 
+				console.log('index Replicate callback');
 				app.changeConnectBtnState();
 				if (alert_msg){
 					// show in couch status area at bottom
 					$('#couchStatusMsg').html(alert_msg);
 
 					if (!success){ 
+						console.log('HEY error! ' + alert_msg);
 						// show shorter version of error msg in top status bar.
 						alert_msg = "Could not connect to CouchDB."; 
+
 					} else {
+						console.log('HEY!  couch success');
 						// update number of local records 
 						//   -- 1 additional record is added for attachment at time of connection to couch
 						app.getRecordCount(function(num_rows){
@@ -363,7 +441,7 @@ var app = {
 							app.pouchObjCreated = false;
 						}); 
 				}
-			});
+			});*/
 		}
 	},
 /*
@@ -434,7 +512,7 @@ var app = {
 			app.metaConnectionLog.end_connection_time = false;
 			app.metaConnectionLog.interval_length_secs = app.timeInterval / 1000;
 			dBase.add(app.metaConnectionLog,function(res){
-				// when sending this doc back to couch on edit, id and rev properties much have underscores
+				// when sending this obj back to couch for edits, id and rev properties must have underscores
 				app.metaConnectionLog._id = res.id;
 				app.metaConnectionLog._rev = res.rev;
 			});
@@ -442,8 +520,10 @@ var app = {
 			// set the disconnect time
 			app.metaConnectionLog.end_connection_time = new Date();
 			dBase.update(app.metaConnectionLog,function(res){
-				//reset this object
-				app.metaConnectionLog = {};
+				// if bluetooth is no longer connected, reset the object
+				if (!app.portOpen){
+					app.metaConnectionLog = {};
+				}
 			});
 		}
 	},
