@@ -1,7 +1,7 @@
 var app = {
 	deviceAddress: "AA:BB:CC:DD:EE:FF",  // get your mac address from bluetoothSerial.list
 	deviceName: "No Name",
-	pouchDBName: "mypouchgeoraw0701-1110p", // name of the database pouchDB uses locally on device (NOT remote couchDB)
+	pouchDBName: "mypouchgeo071914", // name of the database pouchDB uses locally on device (NOT remote couchDB)
 	nmeaPacket: [], // group of nmea sentences, used for buffering
 	usingRaw: true,	
 	nmeaRawArr: [], // array of all sentences (this COULD be in local storage instead ... ?)

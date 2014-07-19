@@ -108,8 +108,7 @@ var dBase = {
 			});
 		} else {
 			attach(doc,dataArr,fieldName);
-		}
-		
+		}	
 	}
 	/*checkDbAddr: function(){
 		//var path = this.remoteServer + this.remoteDbName;
